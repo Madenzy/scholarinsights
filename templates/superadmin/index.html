@@ -1,0 +1,111 @@
+{% extends "superadmin/base.html" %}
+{% block title %}Platform Overview{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Platform Overview</h1>
+    <p class="sub">All schools registered on InsightScholar</p>
+  </div>
+</div>
+
+<div class="content">
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-card__icon stat-card__icon--indigo">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      </div>
+      <div>
+        <div class="stat-card__value">{{ totals.schools }}</div>
+        <div class="stat-card__label">Schools</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card__icon stat-card__icon--cyan">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </div>
+      <div>
+        <div class="stat-card__value">{{ totals.users }}</div>
+        <div class="stat-card__label">Total Users</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card__icon stat-card__icon--green">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+      </div>
+      <div>
+        <div class="stat-card__value">{{ totals.students }}</div>
+        <div class="stat-card__label">Total Students</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card__icon stat-card__icon--orange">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      </div>
+      <div>
+        <div class="stat-card__value">{{ totals.reports }}</div>
+        <div class="stat-card__label">Total Reports</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><h2>Registered Schools</h2></div>
+    {% if schools %}
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>School</th>
+            <th>Email</th>
+            <th>Students</th>
+            <th>Reports</th>
+            <th>Status</th>
+            <th>Registered</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for school in schools %}
+          <tr>
+            <td><strong>{{ school.name }}</strong></td>
+            <td class="text-muted">{{ school.email }}</td>
+            <td><span class="badge badge--gray">{{ school.students | length }}</span></td>
+            <td><span class="badge badge--gray">{{ school.reports | length }}</span></td>
+            <td>
+              {% if school.is_active %}
+                <span class="badge badge--green">Active</span>
+              {% else %}
+                <span class="badge badge--red">Suspended</span>
+              {% endif %}
+            </td>
+            <td class="text-muted">{{ school.created_at.strftime('%d %b %Y') }}</td>
+            <td>
+              <div class="actions">
+                <a href="{{ url_for('superadmin.school_detail', id=school.id) }}" class="btn btn--ghost btn--sm">Manage</a>
+                {% if school.is_active %}
+                <form method="POST" action="{{ url_for('superadmin.disable_school', id=school.id) }}"
+                      data-confirm="Suspend {{ school.name }}? All its users will be locked out.">
+                  <button type="submit" class="btn btn--danger btn--sm">Suspend</button>
+                </form>
+                {% else %}
+                <form method="POST" action="{{ url_for('superadmin.enable_school', id=school.id) }}">
+                  <button type="submit" class="btn btn--success btn--sm">Reactivate</button>
+                </form>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+      <p>No schools registered yet.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

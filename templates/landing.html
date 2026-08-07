@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>InsightScholar — Smarter School Reports &amp; Student Analytics</title>
+<meta name="description" content="Generate, manage, and analyze student reports with a modern platform built for schools, teachers, and administrators." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/landing.css') }}" />
+</head>
+<body>
+  <!-- NAV -->
+  <header class="nav">
+    <div class="container nav__inner">
+      <a href="{{ url_for('dashboard.index') }}" class="brand">
+        <span class="brand__mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+        </span>
+        <span class="brand__name">InsightScholar</span>
+      </a>
+      <nav class="nav__links" aria-label="Primary">
+        <a href="#home">Home</a>
+        <a href="#features">Features</a>
+        <a href="#get-started">Get Started</a>
+        <a href="#contact">Contact</a>
+        <a href="{{ url_for('legal.about') }}">About</a>
+      </nav>
+      <div class="nav__actions">
+        <a href="{{ url_for('auth.login') }}" class="link-muted">Login</a>
+        <a href="{{ url_for('auth.school_register') }}" class="btn btn--primary">Register School</a>
+      </div>
+      <button class="nav__toggle" aria-label="Open menu" id="navToggle">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <!-- HERO -->
+    <section id="home" class="hero">
+      <div class="hero__bg" aria-hidden="true"></div>
+      <div class="container hero__grid">
+        <div class="hero__copy">
+          <span class="chip">
+            <span class="chip__dot"></span> Multi-school platform • Students &amp; parent portals
+          </span>
+          <h1 class="hero__title">
+            Smarter school reports for
+            <span class="gradient-text">better student insights</span>
+          </h1>
+          <p class="hero__sub">
+            Generate, manage, and analyze student reports with a powerful platform built for schools, teachers, administrators, students, and parents.
+          </p>
+          <div class="hero__cta">
+            <a href="{{ url_for('auth.school_register') }}" class="btn btn--primary btn--lg">
+              Register Your School
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+            </a>
+            <a href="{{ url_for('auth.login') }}" class="btn btn--ghost btn--lg">Sign In</a>
+          </div>
+          <dl class="stats">
+            <div><dt>4,250</dt><dd>Students</dd></div>
+            <div><dt>85%</dt><dd>Avg. Performance</dd></div>
+            <div><dt>125</dt><dd>Teachers</dd></div>
+          </dl>
+        </div>
+
+        <div class="hero__visual">
+          <div class="card card--chart">
+            <div class="card__head">
+              <div>
+                <p class="eyebrow">Performance Analytics</p>
+                <p class="card__title">Form 2 - Term Overview</p>
+              </div>
+              <span class="badge">Live</span>
+            </div>
+            <div class="chart" id="chart" aria-hidden="true"></div>
+            <div class="grades">
+              <div><span>Math</span><strong>A−</strong></div>
+              <div><span>Science</span><strong>B+</strong></div>
+              <div><span>English</span><strong>A</strong></div>
+            </div>
+          </div>
+          <div class="floating-card">
+            <span class="floating-card__icon">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4 12 14.01l-3-3"/></svg>
+            </span>
+            <div>
+              <p class="floating-card__title">Report generated</p>
+              <p class="floating-card__sub">312 students • 2s</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FEATURES -->
+    <section id="features" class="features">
+      <div class="container">
+        <div class="section-head">
+          <p class="eyebrow eyebrow--primary">Platform</p>
+          <h2>Everything your school needs in one place</h2>
+          <p class="section-sub">Built with teachers and administrators in mind — fast, reliable, and beautifully simple.</p>
+        </div>
+        <div class="features__grid">
+          <article class="feature">
+            <span class="feature__icon">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg>
+            </span>
+            <h3>Automated Reports</h3>
+            <p>Generate end-of-term school reports instantly with consistent formatting and grade calculations.</p>
+          </article>
+          <article class="feature">
+            <span class="feature__icon">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            </span>
+            <h3>Analytics Dashboard</h3>
+            <p>Track performance trends visually across classes, subjects, and grade levels.</p>
+          </article>
+          <article class="feature">
+            <span class="feature__icon">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </span>
+            <h3>Student &amp; Parent Portals</h3>
+            <p>Students and parents get their own secure login to view published report cards anytime.</p>
+          </article>
+          <article class="feature">
+            <span class="feature__icon">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19a4.5 4.5 0 1 0-1-8.9A6 6 0 0 0 5 12.5 4.5 4.5 0 0 0 6.5 21H17.5z"/></svg>
+            </span>
+            <h3>Cloud Storage</h3>
+            <p>Securely store and access student records from any device, anywhere, at any time.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section id="get-started" class="cta">
+      <div class="container">
+        <div class="cta__card">
+          <h2>Ready to transform school reporting?</h2>
+          <p>Join schools using InsightScholar to simplify reporting and unlock deeper student insights.</p>
+          <a href="{{ url_for('auth.school_register') }}" class="btn btn--light btn--lg">
+            Register Your School — It's Free
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONTACT -->
+    <section id="contact" class="contact">
+      <div class="container contact__grid">
+        <div class="contact__info">
+          <p class="eyebrow eyebrow--primary">Contact</p>
+          <h2>Talk to our team</h2>
+          <p class="section-sub">
+            Have a question about InsightScholar, pricing, or onboarding your school? Send us a
+            message and we'll get back within one business day.
+          </p>
+          <ul class="contact__list">
+            <li>
+              <span class="contact__ico">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              </span>
+              <div><strong>Email</strong><span>hello@insightscholar.com</span></div>
+            </li>
+            <li>
+              <span class="contact__ico">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.37 1.9.72 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.35 1.85.59 2.81.72A2 2 0 0 1 22 16.92z"/></svg>
+              </span>
+              <div><strong>Phone</strong><span>+1 (555) 010-2024</span></div>
+            </li>
+            <li>
+              <span class="contact__ico">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              </span>
+              <div><strong>Office</strong><span>220 Education Ave, Suite 400</span></div>
+            </li>
+          </ul>
+        </div>
+
+        <form class="contact__form" id="contactForm" novalidate>
+          <div class="field-row">
+            <div class="field">
+              <label for="cf-name">Full name</label>
+              <input id="cf-name" name="name" type="text" maxlength="100" required autocomplete="name" />
+              <p class="field__error" data-error-for="name"></p>
+            </div>
+            <div class="field">
+              <label for="cf-email">Email</label>
+              <input id="cf-email" name="email" type="email" maxlength="255" required autocomplete="email" />
+              <p class="field__error" data-error-for="email"></p>
+            </div>
+          </div>
+          <div class="field">
+            <label for="cf-school">School / organization <span class="optional">(optional)</span></label>
+            <input id="cf-school" name="school" type="text" maxlength="150" autocomplete="organization" />
+            <p class="field__error" data-error-for="school"></p>
+          </div>
+          <div class="field">
+            <label for="cf-message">Message</label>
+            <textarea id="cf-message" name="message" rows="5" maxlength="2000" required></textarea>
+            <p class="field__error" data-error-for="message"></p>
+          </div>
+          <div class="form__actions">
+            <button type="submit" class="btn btn--primary btn--lg" id="cfSubmit">
+              <span class="btn__label">Send message</span>
+              <span class="btn__spinner" aria-hidden="true"></span>
+            </button>
+            <p class="form__status" id="cfStatus" role="status" aria-live="polite"></p>
+          </div>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer id="footer" class="footer">
+    <div class="container footer__grid">
+      <div class="footer__brand">
+        <a href="{{ url_for('dashboard.index') }}" class="brand">
+          <span class="brand__mark">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+          </span>
+          <span class="brand__name">InsightScholar</span>
+        </a>
+        <p>The modern school report management system. Helping educators turn data into meaningful student outcomes.</p>
+        <ul class="footer__contact">
+          <li><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> hello@insightscholar.com</li>
+          <li><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.37 1.9.72 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.35 1.85.59 2.81.72A2 2 0 0 1 22 16.92z"/></svg> +1 (555) 010-2024</li>
+          <li><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> 220 Education Ave, Suite 400</li>
+        </ul>
+      </div>
+
+      <div class="footer__col">
+        <h4>Product</h4>
+        <ul>
+          <li><a href="#features">Features</a></li>
+          <li><a href="#get-started">Get Started</a></li>
+          <li><a href="{{ url_for('auth.login') }}">Sign In</a></li>
+          <li><a href="{{ url_for('auth.school_register') }}">Register School</a></li>
+        </ul>
+      </div>
+      <div class="footer__col">
+        <h4>Company</h4>
+        <ul>
+          <li><a href="{{ url_for('legal.about') }}">About</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
+      </div>
+      <div class="footer__col">
+        <h4>Legal</h4>
+        <ul>
+          <li><a href="{{ url_for('legal.privacy') }}">Privacy</a></li>
+          <li><a href="{{ url_for('legal.terms') }}">Terms</a></li>
+          <li><a href="{{ url_for('legal.security') }}">Security</a></li>
+          <li><a href="{{ url_for('legal.cookies') }}">Cookies</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="container footer__bottom">
+      <p>© 2026 InsightScholar • School Report Management System</p>
+      <div class="socials">
+        <a href="#" aria-label="Twitter"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M22 5.8c-.7.3-1.5.6-2.4.7.9-.5 1.5-1.3 1.8-2.3-.8.5-1.7.8-2.7 1A4.2 4.2 0 0 0 11.6 9c0 .3 0 .7.1 1A12 12 0 0 1 3 4.7a4.2 4.2 0 0 0 1.3 5.6c-.7 0-1.3-.2-1.9-.5v.1c0 2 1.5 3.7 3.4 4.1-.4.1-.8.2-1.2.2l-.8-.1c.6 1.7 2.2 2.9 4.1 3a8.4 8.4 0 0 1-6.2 1.7A12 12 0 0 0 8 20.5c7.7 0 11.9-6.4 11.9-11.9v-.5c.8-.6 1.5-1.4 2.1-2.3z"/></svg></a>
+        <a href="#" aria-label="LinkedIn"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zM8.3 18.3H5.7v-8.4h2.6v8.4zM7 8.7a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm11.3 9.6h-2.6V14c0-1-.4-1.7-1.3-1.7-.7 0-1.1.5-1.3 1-.1.2-.1.4-.1.7v4.3H10.4V9.9H13v1.1c.3-.5 1-1.3 2.4-1.3 1.8 0 3 1.2 3 3.6v5z"/></svg></a>
+        <a href="#" aria-label="Facebook"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M22 12a10 10 0 1 0-11.6 9.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.5h-1.3c-1.2 0-1.6.8-1.6 1.6V12h2.8l-.5 2.9h-2.4v7A10 10 0 0 0 22 12z"/></svg></a>
+        <a href="#" aria-label="GitHub"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 2a10 10 0 0 0-3.2 19.5c.5.1.7-.2.7-.5v-1.7c-2.8.6-3.4-1.3-3.4-1.3-.5-1.2-1.2-1.5-1.2-1.5-1-.6.1-.6.1-.6 1 .1 1.6 1 1.6 1 .9 1.6 2.5 1.1 3.1.9.1-.7.4-1.2.7-1.5-2.2-.3-4.6-1.1-4.6-5 0-1.1.4-2 1-2.7-.1-.3-.5-1.3.1-2.7 0 0 .9-.3 2.8 1a9.6 9.6 0 0 1 5 0c1.9-1.3 2.8-1 2.8-1 .6 1.4.2 2.4.1 2.7.6.7 1 1.6 1 2.7 0 3.9-2.4 4.7-4.6 5 .4.3.7.9.7 1.9v2.8c0 .3.2.6.7.5A10 10 0 0 0 12 2z"/></svg></a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="{{ url_for('static', filename='js/landing.js') }}"></script>
+</body>
+</html>

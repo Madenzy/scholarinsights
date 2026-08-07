@@ -1,0 +1,78 @@
+{% extends "legal/base.html" %}
+{% block title %}Security — InsightScholar{% endblock %}
+
+{% block toc %}
+<ul class="legal-toc">
+  <li><a href="#our-approach">Our Approach</a></li>
+  <li><a href="#technical-measures">Technical Measures</a></li>
+  <li><a href="#access-control">Access Control</a></li>
+  <li><a href="#data-protection">Data Protection</a></li>
+  <li><a href="#your-role">Your Role</a></li>
+  <li><a href="#incident-response">Incident Response</a></li>
+  <li><a href="#report-vulnerability">Report a Vulnerability</a></li>
+</ul>
+{% endblock %}
+
+{% block content %}
+<h1>Security</h1>
+
+<div class="legal-highlight">
+  <p>The security of student data is a top priority for InsightScholar. This page outlines the measures we take to keep your data safe.</p>
+</div>
+
+<h2 id="our-approach">Our Approach to Security</h2>
+<p>InsightScholar was designed with security in mind from day one. We follow industry best practices to protect your school's data and ensure that only authorised users can access it.</p>
+
+<h2 id="technical-measures">Technical Security Measures</h2>
+<ul>
+  <li><strong>HTTPS encryption:</strong> All data transmitted between your browser and our servers is encrypted using TLS.</li>
+  <li><strong>Password hashing:</strong> Passwords are never stored in plain text. We use bcrypt hashing, a strong one-way cryptographic algorithm.</li>
+  <li><strong>Session management:</strong> Sessions are cryptographically signed and expire automatically after inactivity.</li>
+  <li><strong>Input validation:</strong> All user-submitted data is validated and sanitised to prevent injection attacks.</li>
+  <li><strong>CSRF protection:</strong> All forms are protected against Cross-Site Request Forgery attacks.</li>
+</ul>
+
+<h2 id="access-control">Access Control</h2>
+<p>InsightScholar enforces strict role-based access control:</p>
+<ul>
+  <li><strong>Super Admin:</strong> Platform-level access. Can manage schools but cannot access individual student records.</li>
+  <li><strong>School Admin:</strong> Full access to their school's data only. Cannot access data from other schools.</li>
+  <li><strong>Teacher:</strong> Can manage students and generate reports within their school.</li>
+  <li><strong>Student:</strong> Can only view their own published report cards.</li>
+  <li><strong>Parent:</strong> Can only view published reports for their linked children.</li>
+</ul>
+<p>Every database query is scoped to the logged-in user's school. It is not possible for one school to access another school's data.</p>
+
+<h2 id="data-protection">Data Protection</h2>
+<ul>
+  <li>Student data is stored only for the duration of the school's active subscription.</li>
+  <li>Deleted data is permanently removed and cannot be recovered.</li>
+  <li>We do not sell, share, or use student data for any purpose other than providing the service.</li>
+</ul>
+
+<h2 id="your-role">Your Role in Security</h2>
+<p>You can help keep your school's data secure by following these best practices:</p>
+<ul>
+  <li>Use a strong, unique password for your InsightScholar account.</li>
+  <li>Never share your login credentials with anyone.</li>
+  <li>Log out when using a shared or public computer.</li>
+  <li>Contact your school administrator immediately if you suspect your account has been compromised.</li>
+  <li>School administrators should promptly disable accounts for staff who are no longer employed.</li>
+</ul>
+
+<h2 id="incident-response">Incident Response</h2>
+<p>In the event of a data breach or security incident, we will:</p>
+<ul>
+  <li>Investigate and contain the incident as quickly as possible</li>
+  <li>Notify affected schools within 72 hours of becoming aware of the breach</li>
+  <li>Provide details of what data was affected and what steps we are taking</li>
+  <li>Work to prevent recurrence</li>
+</ul>
+
+<h2 id="report-vulnerability">Report a Vulnerability</h2>
+<p>If you discover a security vulnerability in InsightScholar, please report it responsibly. We take all security reports seriously and will respond promptly.</p>
+<p>Please do not publicly disclose the vulnerability until we have had a reasonable opportunity to address it.</p>
+<ul>
+  <li><strong>Security contact:</strong> security@insightscholar.com</li>
+</ul>
+{% endblock %}

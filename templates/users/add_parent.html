@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Add Parent — InsightScholar{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="breadcrumb">
+      <a href="{{ url_for('users.index') }}">Users</a>
+      <span>/</span>
+      <span>Add Parent</span>
+    </div>
+    <h1>Add Parent Account</h1>
+    <p class="sub">Create a login for a parent and link them to their child(ren).</p>
+  </div>
+</div>
+
+<div class="content">
+  <div class="card" style="max-width:560px">
+    <div class="card-header"><h2>Parent Details</h2></div>
+    <div class="card-body">
+      <form method="POST" action="{{ url_for('users.add_parent') }}">
+        <div class="form-grid">
+          <div class="field">
+            <label for="full_name">Full Name</label>
+            <input id="full_name" name="full_name" type="text" placeholder="e.g. Mary Smith"/>
+          </div>
+          <div class="form-row">
+            <div class="field">
+              <label for="username">Username *</label>
+              <input id="username" name="username" type="text" required placeholder="msmith"/>
+            </div>
+            <div class="field">
+              <label for="email">Email</label>
+              <input id="email" name="email" type="email" placeholder="parent@email.com"/>
+            </div>
+          </div>
+          <div class="field">
+            <label for="password">Password *</label>
+            <input id="password" name="password" type="password" required minlength="6" placeholder="Min. 6 characters"/>
+          </div>
+
+          <div class="field">
+            <label>Children * <span class="hint">(select all that apply)</span></label>
+            {% if students %}
+            <div class="card" style="max-height:220px;overflow-y:auto;padding:12px 14px;display:grid;gap:8px;border-radius:9px">
+              {% for s in students %}
+              <div class="checkbox-row">
+                <input type="checkbox" name="child_ids" id="child_{{ s.id }}" value="{{ s.id }}"/>
+                <label for="child_{{ s.id }}">{{ s.full_name }} <span class="text-muted">({{ s.class_.name if s.class_ else 'No class' }} · {{ s.reg_number }})</span></label>
+              </div>
+              {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-muted">No students found. <a href="{{ url_for('students.add') }}" class="link-primary">Add students first</a>.</p>
+            {% endif %}
+          </div>
+
+          <div class="gap-row">
+            <button type="submit" class="btn btn--primary">Create Parent Account</button>
+            <a href="{{ url_for('users.index') }}" class="btn btn--ghost">Cancel</a>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

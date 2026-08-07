@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% block title %}{{ student.full_name }} — InsightScholar{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="breadcrumb">
+      <a href="{{ url_for('students.index') }}">Students</a>
+      <span>/</span>
+      <span>{{ student.full_name }}</span>
+    </div>
+    <h1>{{ student.full_name }}</h1>
+    <p class="sub">{{ student.reg_number }}</p>
+  </div>
+  <div class="gap-row">
+    <a href="{{ url_for('reports.generate') }}?student_id={{ student.id }}" class="btn btn--primary">New Report</a>
+    <a href="{{ url_for('students.edit', id=student.id) }}" class="btn btn--ghost">Edit</a>
+  </div>
+</div>
+
+<div class="content">
+  <div class="detail-layout">
+    <!-- Sidebar -->
+    <div class="detail-sidebar">
+
+      <!-- Profile -->
+      <div class="card">
+        <div class="card-body">
+          <div class="profile-header">
+            <div class="profile-avatar">{{ student.first_name[0] }}{{ student.last_name[0] }}</div>
+            <div class="profile-name">{{ student.full_name }}</div>
+            <div class="text-muted mt-1">{{ student.reg_number }}</div>
+          </div>
+          <dl class="dl-list">
+            <div>
+              <dt>Class</dt>
+              <dd>{{ student.class_.name if student.class_ else '—' }}</dd>
+            </div>
+            <div>
+              <dt>Gender</dt>
+              <dd>{{ student.gender or '—' }}</dd>
+            </div>
+            <div>
+              <dt>Date of Birth</dt>
+              <dd>{{ student.date_of_birth.strftime('%d %B %Y') if student.date_of_birth else '—' }}</dd>
+            </div>
+            <div>
+              <dt>Enrolled</dt>
+              <dd>{{ student.created_at.strftime('%d %b %Y') }}</dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+
+      <!-- Login account status (admin only) -->
+      {% if current_user.is_admin %}
+      <div class="card">
+        <div class="card-header"><h2>Student Login</h2></div>
+        <div class="card-body">
+          {% if student.has_account %}
+            <div class="gap-row mb-4">
+              <span class="badge badge--green">Account active</span>
+            </div>
+            <p class="text-muted mb-4">Username: <strong>{{ student.login_user.username }}</strong></p>
+            <form method="POST" action="{{ url_for('users.delete', id=student.login_user.id) }}"
+                  data-confirm="Revoke login access for {{ student.full_name }}?">
+              <button type="submit" class="btn btn--danger btn--sm">Revoke Access</button>
+            </form>
+          {% else %}
+            <p class="text-muted mb-4">This student does not have a login account yet.</p>
+            <a href="{{ url_for('students.create_account', id=student.id) }}" class="btn btn--ghost btn--sm">
+              Create Login Account
+            </a>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+
+    <!-- Reports table -->
+    <div class="card">
+      <div class="card-header">
+        <h2>Report History</h2>
+        <a href="{{ url_for('reports.generate') }}" class="btn btn--ghost btn--sm">+ Generate</a>
+      </div>
+      {% if student.reports %}
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Term</th>
+              <th>Subjects</th>
+              <th>Average</th>
+              <th>Grade</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for report in student.reports | sort(attribute='created_at', reverse=True) %}
+            <tr>
+              <td><strong>{{ report.term.name }}</strong></td>
+              <td>{{ report.grades | length }}</td>
+              <td>
+                {% if report.average_score is not none %}{{ report.average_score }}%{% else %}—{% endif %}
+              </td>
+              <td>
+                {% if report.overall_grade != '-' %}
+                  <span class="badge grade-{{ report.overall_grade }}">{{ report.overall_grade }}</span>
+                {% else %}—{% endif %}
+              </td>
+              <td>
+                {% if report.status == 'published' %}
+                  <span class="badge badge--green">Published</span>
+                {% else %}
+                  <span class="badge badge--yellow">Draft</span>
+                {% endif %}
+              </td>
+              <td>
+                <a href="{{ url_for('reports.view', id=report.id) }}" class="btn btn--ghost btn--sm">View</a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="empty-state">
+        <p>No reports yet for this student.</p>
+      </div>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+{% endblock %}

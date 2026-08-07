@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}Reports — InsightScholar{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Reports</h1>
+    <p class="sub">{{ reports|length }} report{{ 's' if reports|length != 1 }}</p>
+  </div>
+  <a href="{{ url_for('reports.generate') }}" class="btn btn--primary">
+    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    Generate Report
+  </a>
+</div>
+
+<div class="content">
+  <!-- Term filter -->
+  <form method="GET" class="card" style="padding:18px 22px;margin-bottom:18px">
+    <div class="search-bar">
+      <div class="field">
+        <label for="term_id">Filter by Term</label>
+        <select id="term_id" name="term_id">
+          <option value="">All terms</option>
+          {% for t in terms %}
+          <option value="{{ t.id }}" {{ 'selected' if term_id == t.id }}>{{ t.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <button type="submit" class="btn btn--primary" style="align-self:flex-end">Filter</button>
+      {% if term_id %}
+      <a href="{{ url_for('reports.index') }}" class="btn btn--ghost" style="align-self:flex-end">Clear</a>
+      {% endif %}
+    </div>
+  </form>
+
+  <div class="card">
+    {% if reports %}
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Student</th>
+            <th>Class</th>
+            <th>Term</th>
+            <th>Subjects</th>
+            <th>Average</th>
+            <th>Grade</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for report in reports %}
+          <tr>
+            <td>
+              <a href="{{ url_for('students.detail', id=report.student.id) }}" style="font-weight:600;color:var(--primary)">
+                {{ report.student.full_name }}
+              </a>
+            </td>
+            <td>{{ report.student.class_.name if report.student.class_ else '—' }}</td>
+            <td>{{ report.term.name }}</td>
+            <td>{{ report.grades | length }}</td>
+            <td>{{ report.average_score if report.average_score is not none else '—' }}{% if report.average_score is not none %}%{% endif %}</td>
+            <td>
+              {% if report.overall_grade != '-' %}
+              <span class="badge grade-{{ report.overall_grade }}">{{ report.overall_grade }}</span>
+              {% else %}—{% endif %}
+            </td>
+            <td>
+              {% if report.status == 'published' %}
+              <span class="badge badge--green">Published</span>
+              {% else %}
+              <span class="badge badge--yellow">Draft</span>
+              {% endif %}
+            </td>
+            <td>
+              <div class="actions">
+                <a href="{{ url_for('reports.view', id=report.id) }}" class="btn btn--ghost btn--sm">View</a>
+                <a href="{{ url_for('reports.edit', id=report.id) }}" class="btn btn--ghost btn--sm">Edit</a>
+                <form method="POST" action="{{ url_for('reports.delete', id=report.id) }}" data-confirm="Delete this report?">
+                  <button type="submit" class="btn btn--danger btn--sm">Delete</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      <p>No reports found. <a href="{{ url_for('reports.generate') }}" style="color:var(--primary)">Generate the first one</a>.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

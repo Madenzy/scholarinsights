@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login — InsightScholar</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}"/>
+</head>
+<body>
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-brand">
+      <span class="mark">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+      </span>
+      <span class="name">InsightScholar</span>
+    </div>
+
+    <h1>Sign in</h1>
+    <p class="sub">Students, parents, teachers and admins all use this page.</p>
+
+    {% with messages = get_flashed_messages(with_categories=True) %}
+      {% for category, message in messages %}
+        <div class="alert alert--{{ category }} mb-4">{{ message }}</div>
+      {% endfor %}
+    {% endwith %}
+
+    <form method="POST" action="{{ url_for('auth.login') }}">
+      <div class="form-grid">
+        <div class="field">
+          <label for="username">Username</label>
+          <input id="username" name="username" type="text" required autofocus autocomplete="username" placeholder="Your username"/>
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <input id="password" name="password" type="password" required autocomplete="current-password" placeholder="••••••••"/>
+        </div>
+        <div class="checkbox-row">
+          <input type="checkbox" name="remember" id="remember"/>
+          <label for="remember">Keep me signed in</label>
+        </div>
+        <button type="submit" class="btn btn--primary btn--lg btn--block">Sign in</button>
+      </div>
+    </form>
+
+    {% if not has_schools %}
+    <div class="auth-divider">
+      <p>No schools registered yet.</p>
+      <a href="{{ url_for('auth.school_register') }}" class="btn btn--ghost btn--block">Register your school</a>
+    </div>
+    {% else %}
+    <p class="auth-footer">
+      Is your school not on InsightScholar?
+      <a href="{{ url_for('auth.school_register') }}">Register now</a>
+    </p>
+    {% endif %}
+  </div>
+</div>
+<footer class="auth-page-footer">
+  <nav class="auth-page-footer__links">
+    <a href="{{ url_for('legal.about') }}">About</a>
+    <a href="{{ url_for('legal.privacy') }}">Privacy</a>
+    <a href="{{ url_for('legal.terms') }}">Terms</a>
+    <a href="{{ url_for('legal.cookies') }}">Cookies</a>
+    <a href="{{ url_for('legal.security') }}">Security</a>
+  </nav>
+</footer>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

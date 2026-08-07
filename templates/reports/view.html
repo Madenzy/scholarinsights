@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+{% block title %}Report — {{ report.student.full_name }} — InsightScholar{% endblock %}
+
+{% block head %}
+<style>
+  @media print {
+    .no-print { display: none !important; }
+    .main { margin-left: 0; }
+    .sidebar { display: none; }
+    body { background: #fff; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header no-print">
+  <div>
+    <div class="breadcrumb">
+      <a href="{{ url_for('reports.index') }}">Reports</a>
+      <span>/</span>
+      <span>{{ report.student.full_name }}</span>
+    </div>
+    <h1>Report Card</h1>
+  </div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap">
+    <button onclick="window.print()" class="btn btn--ghost">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      Print
+    </button>
+    <a href="{{ url_for('reports.edit', id=report.id) }}" class="btn btn--ghost">Edit</a>
+    {% if report.status == 'draft' %}
+    <form method="POST" action="{{ url_for('reports.publish', id=report.id) }}">
+      <button type="submit" class="btn btn--success">Publish Report</button>
+    </form>
+    {% else %}
+    <form method="POST" action="{{ url_for('reports.unpublish', id=report.id) }}">
+      <button type="submit" class="btn btn--ghost">Unpublish</button>
+    </form>
+    {% endif %}
+    <form method="POST" action="{{ url_for('reports.delete', id=report.id) }}" data-confirm="Delete this report permanently?">
+      <button type="submit" class="btn btn--danger">Delete</button>
+    </form>
+  </div>
+</div>
+
+<div class="content">
+  <div class="card report-card">
+    <!-- Header -->
+    <div class="card-body">
+      <div class="report-card__header">
+        <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:10px">
+          <div style="display:grid;place-items:center;width:44px;height:44px;background:var(--primary);color:#fff;border-radius:10px">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+          </div>
+          <div class="report-card__school">InsightScholar</div>
+        </div>
+        <div class="report-card__subtitle">Student Report Card</div>
+        <div style="margin-top:10px">
+          {% if report.status == 'published' %}
+          <span class="badge badge--green">Published</span>
+          {% else %}
+          <span class="badge badge--yellow">Draft</span>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Meta -->
+      <div class="report-card__meta">
+        <div class="report-card__meta-item">
+          <strong>Student Name</strong>
+          <span>{{ report.student.full_name }}</span>
+        </div>
+        <div class="report-card__meta-item">
+          <strong>Registration No.</strong>
+          <span>{{ report.student.reg_number }}</span>
+        </div>
+        <div class="report-card__meta-item">
+          <strong>Class</strong>
+          <span>{{ report.student.class_.name if report.student.class_ else '—' }}</span>
+        </div>
+        <div class="report-card__meta-item">
+          <strong>Term</strong>
+          <span>{{ report.term.name }}</span>
+        </div>
+        <div class="report-card__meta-item">
+          <strong>Year</strong>
+          <span>{{ report.term.year }}</span>
+        </div>
+        <div class="report-card__meta-item">
+          <strong>Date Issued</strong>
+          <span>{{ report.created_at.strftime('%d %B %Y') }}</span>
+        </div>
+      </div>
+
+      <!-- Overall performance -->
+      <div style="display:flex;gap:20px;align-items:center;background:var(--bg-soft);border-radius:var(--radius);padding:20px 24px;margin-bottom:24px">
+        <div>
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px">Overall Average</div>
+          <div class="report-score-big">
+            {{ report.average_score if report.average_score is not none else '—' }}{% if report.average_score is not none %}<span style="font-size:20px">%</span>{% endif %}
+          </div>
+        </div>
+        <div style="width:1px;height:60px;background:var(--border)"></div>
+        <div>
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px">Overall Grade</div>
+          {% if report.overall_grade != '-' %}
+          <span class="badge grade-{{ report.overall_grade }}" style="font-size:28px;padding:8px 18px;border-radius:10px">{{ report.overall_grade }}</span>
+          {% else %}
+          <span style="font-size:28px;color:var(--muted)">—</span>
+          {% endif %}
+        </div>
+        <div style="width:1px;height:60px;background:var(--border)"></div>
+        <div>
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px">Subjects</div>
+          <div class="report-score-big" style="font-size:32px">{{ report.grades|length }}</div>
+        </div>
+      </div>
+
+      <!-- Grades table -->
+      {% if report.grades %}
+      <h3 style="margin:0 0 14px;font-size:14px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)">Subject Results</h3>
+      <div class="table-wrap" style="margin-bottom:24px">
+        <table class="table" style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">
+          <thead>
+            <tr>
+              <th>Subject</th>
+              <th>Code</th>
+              <th style="text-align:right">Score</th>
+              <th style="text-align:center">Grade</th>
+              <th>Comment</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for grade in report.grades | sort(attribute='subject.name') %}
+            <tr>
+              <td><strong>{{ grade.subject.name }}</strong></td>
+              <td><span style="font-size:12px;color:var(--muted)">{{ grade.subject.code }}</span></td>
+              <td style="text-align:right;font-weight:600">{{ grade.score }}%</td>
+              <td style="text-align:center">
+                <span class="badge grade-{{ grade.grade_letter }}">{{ grade.grade_letter }}</span>
+              </td>
+              <td style="font-size:13px;color:var(--muted)">{{ grade.comment or '—' }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Grade scale -->
+      <div style="margin-bottom:24px;display:flex;gap:8px;flex-wrap:wrap">
+        <span style="font-size:11px;color:var(--muted);font-weight:600;align-self:center">Grade Scale:</span>
+        <span class="badge grade-A">A: 80–100</span>
+        <span class="badge grade-B">B: 65–79</span>
+        <span class="badge grade-C">C: 50–64</span>
+        <span class="badge grade-D">D: 40–49</span>
+        <span class="badge grade-F">F: 0–39</span>
+      </div>
+      {% else %}
+      <div class="empty-state" style="padding:30px">
+        <p>No grades recorded yet. <a href="{{ url_for('reports.edit', id=report.id) }}" style="color:var(--primary)">Add grades</a>.</p>
+      </div>
+      {% endif %}
+
+      <!-- Comments -->
+      {% if report.teacher_comment or report.head_comment %}
+      <div class="report-card__comments">
+        {% if report.teacher_comment %}
+        <div class="comment-box">
+          <strong>Class Teacher's Comment</strong>
+          <p>{{ report.teacher_comment }}</p>
+        </div>
+        {% endif %}
+        {% if report.head_comment %}
+        <div class="comment-box">
+          <strong>Head Teacher's Comment</strong>
+          <p>{{ report.head_comment }}</p>
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

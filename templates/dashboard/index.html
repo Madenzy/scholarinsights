@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — InsightScholar{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Dashboard</h1>
+    <p class="sub">Welcome back, {{ current_user.display_name }}</p>
+  </div>
+  <a href="{{ url_for('reports.generate') }}" class="btn btn--primary">
+    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    New Report
+  </a>
+</div>
+
+<div class="content">
+  <!-- Stats -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-card__icon stat-card__icon--indigo">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </div>
+      <div>
+        <div class="stat-card__value">{{ stats.students }}</div>
+        <div class="stat-card__label">Students</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card__icon stat-card__icon--cyan">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      </div>
+      <div>
+        <div class="stat-card__value">{{ stats.reports }}</div>
+        <div class="stat-card__label">Reports</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card__icon stat-card__icon--green">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      </div>
+      <div>
+        <div class="stat-card__value">{{ stats.classes }}</div>
+        <div class="stat-card__label">Classes</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card__icon stat-card__icon--orange">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+      </div>
+      <div>
+        <div class="stat-card__value">{{ stats.subjects }}</div>
+        <div class="stat-card__label">Subjects</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Reports -->
+  <div class="card">
+    <div class="card-header">
+      <h2>Recent Reports</h2>
+      <a href="{{ url_for('reports.index') }}" class="btn btn--ghost btn--sm">View all</a>
+    </div>
+    {% if recent_reports %}
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Student</th>
+            <th>Class</th>
+            <th>Term</th>
+            <th>Average</th>
+            <th>Grade</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for report in recent_reports %}
+          <tr>
+            <td><strong>{{ report.student.full_name }}</strong></td>
+            <td>{{ report.student.class_.name if report.student.class_ else '—' }}</td>
+            <td>{{ report.term.name }}</td>
+            <td>{{ report.average_score if report.average_score is not none else '—' }}{% if report.average_score is not none %}%{% endif %}</td>
+            <td>
+              {% if report.overall_grade != '-' %}
+              <span class="badge grade-{{ report.overall_grade }}">{{ report.overall_grade }}</span>
+              {% else %}—{% endif %}
+            </td>
+            <td>
+              {% if report.status == 'published' %}
+              <span class="badge badge--green">Published</span>
+              {% else %}
+              <span class="badge badge--yellow">Draft</span>
+              {% endif %}
+            </td>
+            <td><a href="{{ url_for('reports.view', id=report.id) }}" class="btn btn--ghost btn--sm">View</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      <p>No reports yet. <a href="{{ url_for('reports.generate') }}" style="color:var(--primary)">Generate the first one</a>.</p>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Quick actions -->
+  <div style="margin-top:20px;display:flex;gap:12px;flex-wrap:wrap">
+    <a href="{{ url_for('students.add') }}" class="btn btn--ghost">+ Add Student</a>
+    <a href="{{ url_for('classes.index') }}" class="btn btn--ghost">Manage Classes</a>
+    <a href="{{ url_for('terms.index') }}" class="btn btn--ghost">Academic Terms</a>
+  </div>
+</div>
+{% endblock %}

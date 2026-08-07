@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}Academic Terms — InsightScholar{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Academic Terms</h1>
+    <p class="sub">Manage school terms and academic years.</p>
+  </div>
+</div>
+
+<div class="content" style="display:grid;grid-template-columns:1fr 360px;gap:20px;align-items:start">
+  <!-- List -->
+  <div class="card">
+    <div class="card-header"><h2>All Terms</h2></div>
+    {% if terms %}
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Term Name</th>
+            <th>Year</th>
+            <th>Term</th>
+            <th>Start</th>
+            <th>End</th>
+            <th>Reports</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for t in terms %}
+          <tr>
+            <td><strong>{{ t.name }}</strong></td>
+            <td>{{ t.year }}</td>
+            <td><span class="badge badge--indigo">Term {{ t.term_number }}</span></td>
+            <td style="font-size:13px;color:var(--muted)">{{ t.start_date.strftime('%d %b %Y') if t.start_date else '—' }}</td>
+            <td style="font-size:13px;color:var(--muted)">{{ t.end_date.strftime('%d %b %Y') if t.end_date else '—' }}</td>
+            <td><span class="badge badge--gray">{{ t.reports|length }}</span></td>
+            <td>
+              <form method="POST" action="{{ url_for('terms.delete', id=t.id) }}"
+                    data-confirm="Delete term '{{ t.name }}'?">
+                <button type="submit" class="btn btn--danger btn--sm">Delete</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <p>No terms yet. Add your first academic term →</p>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Add form -->
+  <div class="card">
+    <div class="card-header"><h2>Add Term</h2></div>
+    <div class="card-body">
+      <form method="POST" action="{{ url_for('terms.add') }}">
+        <div class="form-grid">
+          <div class="field">
+            <label for="name">Term Name *</label>
+            <input id="name" name="name" type="text" required placeholder="e.g. Term 1 2026"/>
+          </div>
+          <div class="form-row">
+            <div class="field">
+              <label for="year">Year *</label>
+              <input id="year" name="year" type="number" required min="2000" max="2099" value="2026"/>
+            </div>
+            <div class="field">
+              <label for="term_number">Term # *</label>
+              <select id="term_number" name="term_number" required>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="field">
+              <label for="start_date">Start Date</label>
+              <input id="start_date" name="start_date" type="date"/>
+            </div>
+            <div class="field">
+              <label for="end_date">End Date</label>
+              <input id="end_date" name="end_date" type="date"/>
+            </div>
+          </div>
+          <button type="submit" class="btn btn--primary">Add Term</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

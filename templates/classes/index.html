@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Classes — InsightScholar{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Classes</h1>
+    <p class="sub">Manage school classes and form groups.</p>
+  </div>
+</div>
+
+<div class="content" style="display:grid;grid-template-columns:1fr 360px;gap:20px;align-items:start">
+  <!-- List -->
+  <div class="card">
+    <div class="card-header"><h2>All Classes</h2></div>
+    {% if classes %}
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Class Name</th>
+            <th>Grade Level</th>
+            <th>Class Teacher</th>
+            <th>Students</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in classes %}
+          <tr>
+            <td><strong>{{ c.name }}</strong></td>
+            <td>{{ c.grade_level or '—' }}</td>
+            <td>{{ c.teacher.display_name if c.teacher else '—' }}</td>
+            <td><span class="badge badge--gray">{{ c.students|length }}</span></td>
+            <td>
+              <form method="POST" action="{{ url_for('classes.delete', id=c.id) }}"
+                    data-confirm="Delete class '{{ c.name }}'?">
+                <button type="submit" class="btn btn--danger btn--sm">Delete</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <p>No classes yet. Add your first class →</p>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Add form -->
+  <div class="card">
+    <div class="card-header"><h2>Add Class</h2></div>
+    <div class="card-body">
+      <form method="POST" action="{{ url_for('classes.add') }}">
+        <div class="form-grid">
+          <div class="field">
+            <label for="name">Class Name *</label>
+            <input id="name" name="name" type="text" required placeholder="e.g. Form 2A"/>
+          </div>
+          <div class="field">
+            <label for="grade_level">Grade Level</label>
+            <input id="grade_level" name="grade_level" type="text" placeholder="e.g. Form 2"/>
+          </div>
+          <div class="field">
+            <label for="teacher_id">Class Teacher</label>
+            <select id="teacher_id" name="teacher_id">
+              <option value="">Unassigned</option>
+              {% for t in teachers %}
+              <option value="{{ t.id }}">{{ t.display_name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <button type="submit" class="btn btn--primary">Add Class</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

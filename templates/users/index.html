@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% block title %}Users — InsightScholar{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Users</h1>
+    <p class="sub">Manage staff, parents and student login accounts for {{ current_user.school.name }}</p>
+  </div>
+  <div class="gap-row">
+    <a href="{{ url_for('auth.add_teacher') }}" class="btn btn--primary">+ Add Teacher</a>
+    <a href="{{ url_for('users.add_parent') }}" class="btn btn--ghost">+ Add Parent</a>
+  </div>
+</div>
+
+<div class="content">
+  <!-- Staff -->
+  <div class="card mb-4">
+    <div class="card-header"><h2>Staff</h2></div>
+    {% if staff %}
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr><th>Name</th><th>Username</th><th>Email</th><th>Role</th><th></th></tr>
+        </thead>
+        <tbody>
+          {% for u in staff %}
+          <tr>
+            <td><strong>{{ u.display_name }}</strong></td>
+            <td class="text-muted">{{ u.username }}</td>
+            <td class="text-muted">{{ u.email }}</td>
+            <td>
+              {% if u.role == 'school_admin' %}
+                <span class="badge badge--indigo">Admin</span>
+              {% else %}
+                <span class="badge badge--gray">Teacher</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if u.id != current_user.id %}
+              <form method="POST" action="{{ url_for('users.delete', id=u.id) }}" data-confirm="Delete account for {{ u.display_name }}?">
+                <button type="submit" class="btn btn--danger btn--sm">Delete</button>
+              </form>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state"><p>No staff accounts yet.</p></div>
+    {% endif %}
+  </div>
+
+  <!-- Parents -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <h2>Parents</h2>
+      <a href="{{ url_for('users.add_parent') }}" class="btn btn--ghost btn--sm">+ Add Parent</a>
+    </div>
+    {% if parents %}
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr><th>Name</th><th>Username</th><th>Email</th><th>Children</th><th></th></tr>
+        </thead>
+        <tbody>
+          {% for u in parents %}
+          <tr>
+            <td><strong>{{ u.display_name }}</strong></td>
+            <td class="text-muted">{{ u.username }}</td>
+            <td class="text-muted">{{ u.email }}</td>
+            <td>
+              {% for child in u.children %}
+                <span class="badge badge--gray">{{ child.full_name }}</span>
+              {% else %}
+                <span class="text-muted">None</span>
+              {% endfor %}
+            </td>
+            <td>
+              <form method="POST" action="{{ url_for('users.delete', id=u.id) }}" data-confirm="Delete parent account for {{ u.display_name }}?">
+                <button type="submit" class="btn btn--danger btn--sm">Delete</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state"><p>No parent accounts yet. <a href="{{ url_for('users.add_parent') }}" class="link-primary">Add one</a>.</p></div>
+    {% endif %}
+  </div>
+
+  <!-- Student accounts -->
+  <div class="card">
+    <div class="card-header">
+      <h2>Student Login Accounts</h2>
+      <span class="text-muted">Created from a student's profile page</span>
+    </div>
+    {% if student_accounts %}
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr><th>Student</th><th>Username</th><th>Email</th><th></th></tr>
+        </thead>
+        <tbody>
+          {% for u in student_accounts %}
+          <tr>
+            <td>
+              {% if u.student_profile %}
+                <a href="{{ url_for('students.detail', id=u.student_profile.id) }}" class="link-primary">{{ u.display_name }}</a>
+              {% else %}
+                {{ u.display_name }}
+              {% endif %}
+            </td>
+            <td class="text-muted">{{ u.username }}</td>
+            <td class="text-muted">{{ u.email }}</td>
+            <td>
+              <form method="POST" action="{{ url_for('users.delete', id=u.id) }}" data-confirm="Remove login access for {{ u.display_name }}?">
+                <button type="submit" class="btn btn--danger btn--sm">Revoke</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state"><p>No student login accounts yet. Open a student's profile to create one.</p></div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

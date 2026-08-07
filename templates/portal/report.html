@@ -1,0 +1,145 @@
+{% extends "portal/base.html" %}
+{% block title %}Report Card — InsightScholar{% endblock %}
+
+{% block head %}
+<style>
+  @media print {
+    .portal-nav, .no-print { display: none !important; }
+    body { background: #fff; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="portal-header no-print">
+  <a href="{{ url_for('portal.dashboard') }}" class="btn btn--ghost btn--sm">← Back</a>
+</div>
+
+<div class="card report-card mt-4">
+  <div class="card-body">
+    <!-- School header -->
+    <div class="report-card__header">
+      <div class="report-card__school">{{ report.student.login_user.school.name if report.student.login_user and report.student.login_user.school else 'InsightScholar' }}</div>
+      <div class="report-card__subtitle">Student Report Card</div>
+      <div class="mt-2">
+        <span class="badge badge--green">Published</span>
+      </div>
+    </div>
+
+    <!-- Student meta -->
+    <div class="report-card__meta">
+      <div class="report-card__meta-item">
+        <strong>Student Name</strong>
+        <span>{{ report.student.full_name }}</span>
+      </div>
+      <div class="report-card__meta-item">
+        <strong>Registration No.</strong>
+        <span>{{ report.student.reg_number }}</span>
+      </div>
+      <div class="report-card__meta-item">
+        <strong>Class</strong>
+        <span>{{ report.student.class_.name if report.student.class_ else '—' }}</span>
+      </div>
+      <div class="report-card__meta-item">
+        <strong>Term</strong>
+        <span>{{ report.term.name }}</span>
+      </div>
+      <div class="report-card__meta-item">
+        <strong>Year</strong>
+        <span>{{ report.term.year }}</span>
+      </div>
+      <div class="report-card__meta-item">
+        <strong>Date Issued</strong>
+        <span>{{ report.created_at.strftime('%d %B %Y') }}</span>
+      </div>
+    </div>
+
+    <!-- Overall performance -->
+    <div class="stat-card mt-4" style="gap:32px">
+      <div>
+        <div class="stat-card__label">Overall Average</div>
+        <div class="report-score-big">
+          {% if report.average_score is not none %}
+            {{ report.average_score }}<span style="font-size:20px">%</span>
+          {% else %}—{% endif %}
+        </div>
+      </div>
+      <div>
+        <div class="stat-card__label">Overall Grade</div>
+        {% if report.overall_grade != '-' %}
+          <span class="badge grade-{{ report.overall_grade }}" style="font-size:28px;padding:8px 18px;border-radius:10px">{{ report.overall_grade }}</span>
+        {% else %}
+          <span class="text-muted">—</span>
+        {% endif %}
+      </div>
+      <div>
+        <div class="stat-card__label">Subjects</div>
+        <div class="report-score-big" style="font-size:32px">{{ report.grades | length }}</div>
+      </div>
+    </div>
+
+    <!-- Grades table -->
+    {% if report.grades %}
+    <p class="section-label mt-6">Subject Results</p>
+    <div class="table-wrap mt-2">
+      <table class="table" style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">
+        <thead>
+          <tr>
+            <th>Subject</th>
+            <th>Code</th>
+            <th style="text-align:right">Score</th>
+            <th style="text-align:center">Grade</th>
+            <th>Comment</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for grade in report.grades | sort(attribute='subject.name') %}
+          <tr>
+            <td><strong>{{ grade.subject.name }}</strong></td>
+            <td><span class="text-muted">{{ grade.subject.code }}</span></td>
+            <td style="text-align:right;font-weight:600">{{ grade.score }}%</td>
+            <td style="text-align:center">
+              <span class="badge grade-{{ grade.grade_letter }}">{{ grade.grade_letter }}</span>
+            </td>
+            <td class="text-muted">{{ grade.comment or '—' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="gap-row mt-4">
+      <span class="text-muted" style="align-self:center">Grade Scale:</span>
+      <span class="badge grade-A">A: 80–100</span>
+      <span class="badge grade-B">B: 65–79</span>
+      <span class="badge grade-C">C: 50–64</span>
+      <span class="badge grade-D">D: 40–49</span>
+      <span class="badge grade-F">F: 0–39</span>
+    </div>
+    {% endif %}
+
+    <!-- Comments -->
+    {% if report.teacher_comment or report.head_comment %}
+    <div class="report-card__comments mt-6">
+      {% if report.teacher_comment %}
+      <div class="comment-box">
+        <strong>Class Teacher's Comment</strong>
+        <p>{{ report.teacher_comment }}</p>
+      </div>
+      {% endif %}
+      {% if report.head_comment %}
+      <div class="comment-box">
+        <strong>Head Teacher's Comment</strong>
+        <p>{{ report.head_comment }}</p>
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="gap-row mt-4 no-print">
+  <button onclick="window.print()" class="btn btn--ghost">Print Report</button>
+  <a href="{{ url_for('portal.dashboard') }}" class="btn btn--ghost">Back to Portal</a>
+</div>
+{% endblock %}

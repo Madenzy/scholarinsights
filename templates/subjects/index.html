@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Subjects — InsightScholar{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Subjects</h1>
+    <p class="sub">Manage the subjects available for grading.</p>
+  </div>
+</div>
+
+<div class="content" style="display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start">
+  <!-- List -->
+  <div class="card">
+    <div class="card-header"><h2>All Subjects</h2></div>
+    {% if subjects %}
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Subject Name</th>
+            <th>Code</th>
+            <th>Grades Recorded</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in subjects %}
+          <tr>
+            <td><strong>{{ s.name }}</strong></td>
+            <td><code style="font-size:12px;background:var(--bg-soft);padding:2px 6px;border-radius:5px">{{ s.code }}</code></td>
+            <td><span class="badge badge--gray">{{ s.grades|length }}</span></td>
+            <td>
+              <form method="POST" action="{{ url_for('subjects.delete', id=s.id) }}"
+                    data-confirm="Delete subject '{{ s.name }}'?">
+                <button type="submit" class="btn btn--danger btn--sm">Delete</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <p>No subjects yet. Add your first subject →</p>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Add form -->
+  <div class="card">
+    <div class="card-header"><h2>Add Subject</h2></div>
+    <div class="card-body">
+      <form method="POST" action="{{ url_for('subjects.add') }}">
+        <div class="form-grid">
+          <div class="field">
+            <label for="name">Subject Name *</label>
+            <input id="name" name="name" type="text" required placeholder="e.g. Mathematics"/>
+          </div>
+          <div class="field">
+            <label for="code">Subject Code *</label>
+            <input id="code" name="code" type="text" required placeholder="e.g. MATH"
+                   style="text-transform:uppercase"/>
+            <span class="hint">Unique identifier (auto-uppercased)</span>
+          </div>
+          <button type="submit" class="btn btn--primary">Add Subject</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

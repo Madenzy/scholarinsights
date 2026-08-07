@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block title %}InsightScholar{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}"/>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/legal.css') }}"/>
+</head>
+<body class="legal-page">
+
+  <header class="legal-nav">
+    <a href="{{ url_for('auth.login') }}" class="legal-nav__brand">
+      <span class="mark">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+      </span>
+      InsightScholar
+    </a>
+    <nav class="legal-nav__links">
+      <a href="{{ url_for('legal.about') }}" class="{{ 'active' if request.endpoint == 'legal.about' }}">About</a>
+      <a href="{{ url_for('legal.privacy') }}" class="{{ 'active' if request.endpoint == 'legal.privacy' }}">Privacy</a>
+      <a href="{{ url_for('legal.terms') }}" class="{{ 'active' if request.endpoint == 'legal.terms' }}">Terms</a>
+      <a href="{{ url_for('legal.cookies') }}" class="{{ 'active' if request.endpoint == 'legal.cookies' }}">Cookies</a>
+      <a href="{{ url_for('legal.security') }}" class="{{ 'active' if request.endpoint == 'legal.security' }}">Security</a>
+    </nav>
+    <a href="{{ url_for('auth.login') }}" class="btn btn--primary btn--sm">Sign In</a>
+  </header>
+
+  <main class="legal-main">
+    <div class="legal-container">
+      <div class="legal-sidebar">
+        <p class="legal-sidebar__label">On this page</p>
+        {% block toc %}{% endblock %}
+      </div>
+      <article class="legal-content">
+        <p class="legal-updated">Last updated: June 2026</p>
+        {% block content %}{% endblock %}
+      </article>
+    </div>
+  </main>
+
+  <footer class="legal-footer">
+    <div class="legal-footer__inner">
+      <p>© 2026 InsightScholar. All rights reserved.</p>
+      <nav class="legal-footer__links">
+        <a href="{{ url_for('legal.about') }}">About</a>
+        <a href="{{ url_for('legal.privacy') }}">Privacy</a>
+        <a href="{{ url_for('legal.terms') }}">Terms</a>
+        <a href="{{ url_for('legal.cookies') }}">Cookies</a>
+        <a href="{{ url_for('legal.security') }}">Security</a>
+      </nav>
+    </div>
+  </footer>
+
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

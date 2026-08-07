@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Edit {{ student.full_name }} — InsightScholar{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="breadcrumb">
+      <a href="{{ url_for('students.index') }}">Students</a>
+      <span>/</span>
+      <a href="{{ url_for('students.detail', id=student.id) }}">{{ student.full_name }}</a>
+      <span>/</span>
+      <span>Edit</span>
+    </div>
+    <h1>Edit Student</h1>
+  </div>
+</div>
+
+<div class="content">
+  <div class="card" style="max-width:640px">
+    <div class="card-header"><h2>{{ student.full_name }}</h2></div>
+    <div class="card-body">
+      <form method="POST" action="{{ url_for('students.edit', id=student.id) }}">
+        <div class="form-grid">
+          <div class="form-row">
+            <div class="field">
+              <label for="first_name">First Name *</label>
+              <input id="first_name" name="first_name" type="text" required value="{{ student.first_name }}"/>
+            </div>
+            <div class="field">
+              <label for="last_name">Last Name *</label>
+              <input id="last_name" name="last_name" type="text" required value="{{ student.last_name }}"/>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="field">
+              <label for="gender">Gender</label>
+              <select id="gender" name="gender">
+                <option value="">Select…</option>
+                <option value="Male" {{ 'selected' if student.gender == 'Male' }}>Male</option>
+                <option value="Female" {{ 'selected' if student.gender == 'Female' }}>Female</option>
+                <option value="Other" {{ 'selected' if student.gender == 'Other' }}>Other</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="date_of_birth">Date of Birth</label>
+              <input id="date_of_birth" name="date_of_birth" type="date"
+                     value="{{ student.date_of_birth.isoformat() if student.date_of_birth else '' }}"/>
+            </div>
+          </div>
+          <div class="field">
+            <label for="class_id">Class</label>
+            <select id="class_id" name="class_id">
+              <option value="">No class assigned</option>
+              {% for c in classes %}
+              <option value="{{ c.id }}" {{ 'selected' if student.class_id == c.id }}>{{ c.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div style="display:flex;gap:10px;padding-top:4px">
+            <button type="submit" class="btn btn--primary">Save Changes</button>
+            <a href="{{ url_for('students.detail', id=student.id) }}" class="btn btn--ghost">Cancel</a>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

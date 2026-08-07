@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Add Teacher — InsightScholar{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="breadcrumb">
+      <a href="{{ url_for('users.index') }}">Users</a>
+      <span>/</span>
+      <span>Add Teacher</span>
+    </div>
+    <h1>Add Teacher</h1>
+    <p class="sub">Create a staff login for a teacher at {{ current_user.school.name }}</p>
+  </div>
+</div>
+
+<div class="content">
+  <div class="card" style="max-width:480px">
+    <div class="card-header"><h2>Teacher Account</h2></div>
+    <div class="card-body">
+      <form method="POST" action="{{ url_for('auth.add_teacher') }}">
+        <div class="form-grid">
+          <div class="field">
+            <label for="full_name">Full Name</label>
+            <input id="full_name" name="full_name" type="text" placeholder="e.g. Mr. John Doe"/>
+          </div>
+          <div class="form-row">
+            <div class="field">
+              <label for="username">Username *</label>
+              <input id="username" name="username" type="text" required placeholder="jdoe"/>
+            </div>
+            <div class="field">
+              <label for="email">Email *</label>
+              <input id="email" name="email" type="email" required placeholder="jdoe@school.edu"/>
+            </div>
+          </div>
+          <div class="field">
+            <label for="password">Password *</label>
+            <input id="password" name="password" type="password" required minlength="6" placeholder="Min. 6 characters"/>
+          </div>
+          <div class="gap-row">
+            <button type="submit" class="btn btn--primary">Create Teacher Account</button>
+            <a href="{{ url_for('users.index') }}" class="btn btn--ghost">Cancel</a>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

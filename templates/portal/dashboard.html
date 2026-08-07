@@ -1,0 +1,105 @@
+{% extends "portal/base.html" %}
+{% block title %}My Portal — InsightScholar{% endblock %}
+
+{% block content %}
+
+{% if current_user.role == 'student' %}
+  {# ── STUDENT VIEW ── #}
+  <div class="portal-welcome">
+    <h2>Welcome, {{ student.first_name if student else current_user.display_name }}</h2>
+    <p>
+      {% if student and student.class_ %}Class: {{ student.class_.name }} · {% endif %}
+      {{ student.reg_number if student else '' }}
+    </p>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h2>My Reports</h2>
+    </div>
+    {% if reports %}
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Term</th>
+            <th>Subjects</th>
+            <th>Average</th>
+            <th>Grade</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for report in reports %}
+          {% if report.status == 'published' %}
+          <tr>
+            <td><strong>{{ report.term.name }}</strong></td>
+            <td>{{ report.grades | length }}</td>
+            <td>
+              {% if report.average_score is not none %}
+                {{ report.average_score }}%
+              {% else %}—{% endif %}
+            </td>
+            <td>
+              {% if report.overall_grade != '-' %}
+                <span class="badge grade-{{ report.overall_grade }}">{{ report.overall_grade }}</span>
+              {% else %}—{% endif %}
+            </td>
+            <td>
+              <a href="{{ url_for('portal.view_report', id=report.id) }}" class="btn btn--ghost btn--sm">View Report</a>
+            </td>
+          </tr>
+          {% endif %}
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      <p>No published reports yet. Check back after your teacher publishes your results.</p>
+    </div>
+    {% endif %}
+  </div>
+
+{% else %}
+  {# ── PARENT VIEW ── #}
+  <div class="portal-welcome">
+    <h2>Welcome, {{ current_user.display_name }}</h2>
+    <p>You can view published report cards for your {{ children | length }} linked child{{ 'ren' if children | length != 1 }}.</p>
+  </div>
+
+  {% if children %}
+  <div class="children-grid">
+    {% for child in children %}
+    <div class="child-card">
+      <div class="child-card__avatar">{{ child.first_name[0] }}{{ child.last_name[0] }}</div>
+      <div class="child-card__info">
+        <div class="child-card__name">{{ child.full_name }}</div>
+        <div class="child-card__meta">
+          {{ child.class_.name if child.class_ else 'No class assigned' }}
+          · {{ child.reg_number }}
+          · {{ child.reports | selectattr('status', 'eq', 'published') | list | length }} published report(s)
+        </div>
+      </div>
+      <div class="gap-row">
+        {% for report in child.reports | selectattr('status', 'eq', 'published') | sort(attribute='created_at', reverse=True) | list %}
+        <a href="{{ url_for('portal.view_report', id=report.id) }}" class="btn btn--ghost btn--sm">{{ report.term.name }}</a>
+        {% else %}
+        <span class="text-muted">No reports yet</span>
+        {% endfor %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="card">
+    <div class="empty-state">
+      <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+      <p>No children linked to your account yet. Please contact your school administrator.</p>
+    </div>
+  </div>
+  {% endif %}
+{% endif %}
+
+{% endblock %}

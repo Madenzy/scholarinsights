@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Register School — InsightScholar</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}"/>
+</head>
+<body>
+<div class="auth-page" style="padding:40px 24px">
+  <div class="auth-card" style="max-width:560px">
+    <div class="auth-brand">
+      <span class="mark">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+      </span>
+      <span class="name">InsightScholar</span>
+    </div>
+
+    <h1>Register your school</h1>
+    <p class="sub">Set up your school and create the administrator account.</p>
+
+    {% with messages = get_flashed_messages(with_categories=True) %}
+      {% for category, message in messages %}
+        <div class="alert alert--{{ category }}" style="margin-bottom:16px">{{ message }}</div>
+      {% endfor %}
+    {% endwith %}
+
+    <form method="POST" action="{{ url_for('auth.school_register') }}">
+      <div class="form-grid">
+
+        <!-- School info -->
+        <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin:8px 0 -8px">School Information</p>
+
+        <div class="field">
+          <label for="school_name">School Name *</label>
+          <input id="school_name" name="school_name" type="text" required placeholder="e.g. Greenwood High School"/>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label for="school_email">School Email *</label>
+            <input id="school_email" name="school_email" type="email" required placeholder="info@school.edu"/>
+          </div>
+          <div class="field">
+            <label for="school_phone">Phone</label>
+            <input id="school_phone" name="school_phone" type="tel" placeholder="+1 555 000 0000"/>
+          </div>
+        </div>
+        <div class="field">
+          <label for="school_address">Address</label>
+          <input id="school_address" name="school_address" type="text" placeholder="123 School Road, City"/>
+        </div>
+
+        <!-- Admin account -->
+        <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin:8px 0 -8px">Administrator Account</p>
+
+        <div class="field">
+          <label for="full_name">Your Full Name</label>
+          <input id="full_name" name="full_name" type="text" placeholder="Jane Smith"/>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label for="username">Username *</label>
+            <input id="username" name="username" type="text" required autocomplete="username" placeholder="admin"/>
+          </div>
+          <div class="field">
+            <label for="email">Email *</label>
+            <input id="email" name="email" type="email" required placeholder="you@school.edu"/>
+          </div>
+        </div>
+        <div class="field">
+          <label for="password">Password *</label>
+          <input id="password" name="password" type="password" required minlength="6" placeholder="Min. 6 characters"/>
+        </div>
+
+        <button type="submit" class="btn btn--primary btn--lg" style="width:100%;justify-content:center;margin-top:4px">
+          Register School
+        </button>
+        <p style="text-align:center;font-size:13px;color:var(--muted);margin:0">
+          Already registered? <a href="{{ url_for('auth.login') }}" style="color:var(--primary);font-weight:600">Sign in</a>
+        </p>
+      </div>
+    </form>
+  </div>
+</div>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(New-Item -ItemType Directory -Force \"c:\\\\Users\\\\Denzel\\\\Downloads\\\\scholar-insights-hub-main\\\\scholarinsights\\\\templates\\\\legal\")",
+      "PowerShell(Copy-Item \"c:\\\\Users\\\\Denzel\\\\Downloads\\\\scholar-insights-hub-main\\\\scholarinsights\\\\styles.css\" \"c:\\\\Users\\\\Denzel\\\\Downloads\\\\scholar-insights-hub-main\\\\scholarinsights\\\\static\\\\css\\\\landing.css\")"
+    ]
+  }
+}
