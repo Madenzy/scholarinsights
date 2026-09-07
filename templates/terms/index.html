@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Academic Terms — InsightScholar{% endblock %}
+{% block title %}Academic Terms | InsightScholar{% endblock %}
 
 {% block content %}
 <div class="page-header">
@@ -33,8 +33,8 @@
             <td><strong>{{ t.name }}</strong></td>
             <td>{{ t.year }}</td>
             <td><span class="badge badge--indigo">Term {{ t.term_number }}</span></td>
-            <td style="font-size:13px;color:var(--muted)">{{ t.start_date.strftime('%d %b %Y') if t.start_date else '—' }}</td>
-            <td style="font-size:13px;color:var(--muted)">{{ t.end_date.strftime('%d %b %Y') if t.end_date else '—' }}</td>
+            <td style="font-size:13px;color:var(--muted)">{{ t.start_date.strftime('%d %b %Y') if t.start_date else '-' }}</td>
+            <td style="font-size:13px;color:var(--muted)">{{ t.end_date.strftime('%d %b %Y') if t.end_date else '-' }}</td>
             <td><span class="badge badge--gray">{{ t.reports|length }}</span></td>
             <td>
               <form method="POST" action="{{ url_for('terms.delete', id=t.id) }}"

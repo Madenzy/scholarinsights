@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Students — InsightScholar{% endblock %}
+{% block title %}Students | InsightScholar{% endblock %}
 
 {% block content %}
 <div class="page-header">
@@ -60,8 +60,8 @@
                 {{ s.full_name }}
               </a>
             </td>
-            <td>{{ s.class_.name if s.class_ else '—' }}</td>
-            <td>{{ s.gender or '—' }}</td>
+            <td>{{ s.class_.name if s.class_ else '-' }}</td>
+            <td>{{ s.gender or '-' }}</td>
             <td><span class="badge badge--gray">{{ s.reports|length }}</span></td>
             <td>
               <div class="actions">

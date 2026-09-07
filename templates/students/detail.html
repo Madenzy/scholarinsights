@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}{{ student.full_name }} — InsightScholar{% endblock %}
+{% block title %}{{ student.full_name }} | InsightScholar{% endblock %}
 
 {% block content %}
 <div class="page-header">
@@ -34,15 +34,15 @@
           <dl class="dl-list">
             <div>
               <dt>Class</dt>
-              <dd>{{ student.class_.name if student.class_ else '—' }}</dd>
+              <dd>{{ student.class_.name if student.class_ else '-' }}</dd>
             </div>
             <div>
               <dt>Gender</dt>
-              <dd>{{ student.gender or '—' }}</dd>
+              <dd>{{ student.gender or '-' }}</dd>
             </div>
             <div>
               <dt>Date of Birth</dt>
-              <dd>{{ student.date_of_birth.strftime('%d %B %Y') if student.date_of_birth else '—' }}</dd>
+              <dd>{{ student.date_of_birth.strftime('%d %B %Y') if student.date_of_birth else '-' }}</dd>
             </div>
             <div>
               <dt>Enrolled</dt>
@@ -103,12 +103,12 @@
               <td><strong>{{ report.term.name }}</strong></td>
               <td>{{ report.grades | length }}</td>
               <td>
-                {% if report.average_score is not none %}{{ report.average_score }}%{% else %}—{% endif %}
+                {% if report.average_score is not none %}{{ report.average_score }}%{% else %}-{% endif %}
               </td>
               <td>
                 {% if report.overall_grade != '-' %}
                   <span class="badge grade-{{ report.overall_grade }}">{{ report.overall_grade }}</span>
-                {% else %}—{% endif %}
+                {% else %}-{% endif %}
               </td>
               <td>
                 {% if report.status == 'published' %}

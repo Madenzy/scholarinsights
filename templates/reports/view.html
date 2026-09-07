@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Report — {{ report.student.full_name }} — InsightScholar{% endblock %}
+{% block title %}Report | {{ report.student.full_name }} | InsightScholar{% endblock %}
 
 {% block head %}
 <style>
@@ -76,7 +76,7 @@
         </div>
         <div class="report-card__meta-item">
           <strong>Class</strong>
-          <span>{{ report.student.class_.name if report.student.class_ else '—' }}</span>
+          <span>{{ report.student.class_.name if report.student.class_ else '-' }}</span>
         </div>
         <div class="report-card__meta-item">
           <strong>Term</strong>
@@ -97,7 +97,7 @@
         <div>
           <div style="font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px">Overall Average</div>
           <div class="report-score-big">
-            {{ report.average_score if report.average_score is not none else '—' }}{% if report.average_score is not none %}<span style="font-size:20px">%</span>{% endif %}
+            {{ report.average_score if report.average_score is not none else '-' }}{% if report.average_score is not none %}<span style="font-size:20px">%</span>{% endif %}
           </div>
         </div>
         <div style="width:1px;height:60px;background:var(--border)"></div>
@@ -106,7 +106,7 @@
           {% if report.overall_grade != '-' %}
           <span class="badge grade-{{ report.overall_grade }}" style="font-size:28px;padding:8px 18px;border-radius:10px">{{ report.overall_grade }}</span>
           {% else %}
-          <span style="font-size:28px;color:var(--muted)">—</span>
+          <span style="font-size:28px;color:var(--muted)">-</span>
           {% endif %}
         </div>
         <div style="width:1px;height:60px;background:var(--border)"></div>
@@ -139,7 +139,7 @@
               <td style="text-align:center">
                 <span class="badge grade-{{ grade.grade_letter }}">{{ grade.grade_letter }}</span>
               </td>
-              <td style="font-size:13px;color:var(--muted)">{{ grade.comment or '—' }}</td>
+              <td style="font-size:13px;color:var(--muted)">{{ grade.comment or '-' }}</td>
             </tr>
             {% endfor %}
           </tbody>

@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Dashboard — InsightScholar{% endblock %}
+{% block title %}Dashboard | InsightScholar{% endblock %}
 
 {% block content %}
 <div class="page-header">
@@ -78,13 +78,13 @@
           {% for report in recent_reports %}
           <tr>
             <td><strong>{{ report.student.full_name }}</strong></td>
-            <td>{{ report.student.class_.name if report.student.class_ else '—' }}</td>
+            <td>{{ report.student.class_.name if report.student.class_ else '-' }}</td>
             <td>{{ report.term.name }}</td>
-            <td>{{ report.average_score if report.average_score is not none else '—' }}{% if report.average_score is not none %}%{% endif %}</td>
+            <td>{{ report.average_score if report.average_score is not none else '-' }}{% if report.average_score is not none %}%{% endif %}</td>
             <td>
               {% if report.overall_grade != '-' %}
               <span class="badge grade-{{ report.overall_grade }}">{{ report.overall_grade }}</span>
-              {% else %}—{% endif %}
+              {% else %}-{% endif %}
             </td>
             <td>
               {% if report.status == 'published' %}

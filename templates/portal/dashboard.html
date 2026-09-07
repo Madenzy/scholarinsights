@@ -1,5 +1,5 @@
 {% extends "portal/base.html" %}
-{% block title %}My Portal — InsightScholar{% endblock %}
+{% block title %}My Portal | InsightScholar{% endblock %}
 
 {% block content %}
 
@@ -38,12 +38,12 @@
             <td>
               {% if report.average_score is not none %}
                 {{ report.average_score }}%
-              {% else %}—{% endif %}
+              {% else %}-{% endif %}
             </td>
             <td>
               {% if report.overall_grade != '-' %}
                 <span class="badge grade-{{ report.overall_grade }}">{{ report.overall_grade }}</span>
-              {% else %}—{% endif %}
+              {% else %}-{% endif %}
             </td>
             <td>
               <a href="{{ url_for('portal.view_report', id=report.id) }}" class="btn btn--ghost btn--sm">View Report</a>

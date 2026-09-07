@@ -87,7 +87,7 @@ img, svg { display: block; max-width: 100%; }
 .chip {
   display: inline-flex; align-items: center; gap: 8px;
   background: var(--card); border: 1px solid var(--border);
-  padding: 6px 12px; border-radius: 999px; font-size: 12px; color: var(--muted); font-weight: 500;
+  padding: 6px 12px; border-radius: 8px; font-size: 12px; color: var(--muted); font-weight: 500;
 }
 .chip__dot { width: 6px; height: 6px; border-radius: 50%; background: var(--primary); box-shadow: 0 0 0 4px rgba(79,70,229,.15); }
 .hero__title {
@@ -117,7 +117,7 @@ img, svg { display: block; max-width: 100%; }
 .card__title { margin: 6px 0 0; font-size: 18px; font-weight: 600; }
 .badge {
   background: var(--primary-50); color: var(--primary);
-  padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 600;
+  padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600;
 }
 .chart { display: flex; align-items: flex-end; gap: 10px; height: 190px; margin-top: 26px; }
 .chart__bar {

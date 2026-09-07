@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Classes — InsightScholar{% endblock %}
+{% block title %}Classes | InsightScholar{% endblock %}
 
 {% block content %}
 <div class="page-header">
@@ -29,8 +29,8 @@
           {% for c in classes %}
           <tr>
             <td><strong>{{ c.name }}</strong></td>
-            <td>{{ c.grade_level or '—' }}</td>
-            <td>{{ c.teacher.display_name if c.teacher else '—' }}</td>
+            <td>{{ c.grade_level or '-' }}</td>
+            <td>{{ c.teacher.display_name if c.teacher else '-' }}</td>
             <td><span class="badge badge--gray">{{ c.students|length }}</span></td>
             <td>
               <form method="POST" action="{{ url_for('classes.delete', id=c.id) }}"

@@ -52,7 +52,7 @@ document.querySelectorAll('a[href^="#"]').forEach((a) => {
   nums.forEach((n) => io.observe(n));
 })();
 
-// Contact form — posts to Flask /contact endpoint
+// Contact form - posts to Flask /contact endpoint
 (function () {
   const API_URL = "/contact";
 
