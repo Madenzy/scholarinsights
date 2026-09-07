@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Import Students | InsightScholar{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="breadcrumb">
+      <a href="{{ url_for('students.index') }}">Students</a>
+      <span>/</span>
+      <span>Import</span>
+    </div>
+    <h1>Import Students</h1>
+  </div>
+</div>
+
+<div class="content">
+  <div class="card" style="max-width:640px">
+    <div class="card-header"><h2>Upload CSV File</h2></div>
+    <div class="card-body">
+      <p class="hint" style="margin-top:0">
+        Accepts <code>.csv</code>, <code>.tsv</code>, <code>.txt</code>, or <code>.xlsx</code> files,
+        with commas, semicolons, tabs, or pipes as separators. Column headers can be in any order and
+        are matched flexibly, e.g. <code>reg_number</code> / <code>Reg No</code> / <code>Admission No</code>,
+        <code>first_name</code> + <code>last_name</code> or a single <code>Name</code> column,
+        <code>gender</code> / <code>Sex</code>, <code>date_of_birth</code> / <code>DOB</code>
+        (most common date formats are recognised), and <code>class</code> / <code>Grade</code> / <code>Form</code>
+        (matched against your existing classes). Only a registration number and a name are required.
+        <a href="{{ url_for('students.import_template') }}">Download a sample CSV</a>.
+      </p>
+      <form method="POST" enctype="multipart/form-data">
+        <div class="form-grid">
+          <div class="field">
+            <label for="file">File *</label>
+            <input id="file" name="file" type="file" accept=".csv,.tsv,.txt,.xlsx" required/>
+          </div>
+          <div style="display:flex;gap:10px;padding-top:4px">
+            <button type="submit" class="btn btn--primary">Import Students</button>
+            <a href="{{ url_for('students.index') }}" class="btn btn--ghost">Cancel</a>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

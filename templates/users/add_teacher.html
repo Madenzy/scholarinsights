@@ -36,7 +36,10 @@
           </div>
           <div class="field">
             <label for="password">Password *</label>
-            <input id="password" name="password" type="password" required minlength="6" placeholder="Min. 6 characters"/>
+            <div class="password-input">
+              <input id="password" name="password" type="password" required minlength="6" placeholder="Min. 6 characters"/>
+              <button type="button" class="password-toggle" data-target="password" aria-label="Show password"></button>
+            </div>
           </div>
           <div class="gap-row">
             <button type="submit" class="btn btn--primary">Create Teacher Account</button>

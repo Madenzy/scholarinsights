@@ -34,7 +34,10 @@
           </div>
           <div class="field">
             <label for="password">Password *</label>
-            <input id="password" name="password" type="password" required minlength="6" placeholder="Min. 6 characters"/>
+            <div class="password-input">
+              <input id="password" name="password" type="password" required minlength="6" placeholder="Min. 6 characters"/>
+              <button type="button" class="password-toggle" data-target="password" aria-label="Show password"></button>
+            </div>
             <span class="hint">Share this with the student and ask them to keep it safe.</span>
           </div>
           <div class="gap-row">

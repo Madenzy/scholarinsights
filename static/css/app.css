@@ -365,6 +365,27 @@ img, svg { display: block; max-width: 100%; }
 .field textarea { resize: vertical; min-height: 100px; }
 .field select { appearance: none; cursor: pointer; }
 
+.password-input { position: relative; }
+.password-input input { padding-right: 40px; }
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: none;
+  color: var(--muted);
+  border-radius: 6px;
+  cursor: pointer;
+}
+.password-toggle:hover { color: var(--fg); background: var(--bg-soft); }
+.password-toggle svg { width: 16px; height: 16px; }
+
 /* ── SEARCH BAR ──────────────────────────────────────────────── */
 .search-bar {
   display: flex;

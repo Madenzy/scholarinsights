@@ -35,7 +35,10 @@
         </div>
         <div class="field">
           <label for="password">Password</label>
-          <input id="password" name="password" type="password" required autocomplete="current-password" placeholder="••••••••"/>
+          <div class="password-input">
+            <input id="password" name="password" type="password" required autocomplete="current-password" placeholder="••••••••"/>
+            <button type="button" class="password-toggle" data-target="password" aria-label="Show password"></button>
+          </div>
         </div>
         <div class="checkbox-row">
           <input type="checkbox" name="remember" id="remember"/>
