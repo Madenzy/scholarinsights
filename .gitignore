@@ -1,1 +1,4 @@
-__pycache__/`, `*.pyc`, and `.env
+__pycache__
+.env
+instance/*.db
+.claude/
