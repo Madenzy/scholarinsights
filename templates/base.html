@@ -7,16 +7,31 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}"/>
+  {% if current_user.is_authenticated and current_user.school and current_user.school.theme_color %}
+  <style>
+    :root {
+      --primary: {{ current_user.school.theme_color }};
+      --primary-600: color-mix(in srgb, {{ current_user.school.theme_color }} 82%, black);
+      --primary-50: color-mix(in srgb, {{ current_user.school.theme_color }} 10%, white);
+    }
+  </style>
+  {% endif %}
   {% block head %}{% endblock %}
 </head>
 <body class="app">
 
   <aside class="sidebar">
     <div class="sidebar__brand">
+      {% if current_user.school and current_user.school.logo_filename %}
+      <span class="mark mark--logo">
+        <img src="{{ url_for('static', filename='uploads/logos/' + current_user.school.logo_filename) }}" alt="{{ current_user.school.name }} logo"/>
+      </span>
+      {% else %}
       <span class="mark">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
       </span>
-      <span class="name">InsightScholar</span>
+      {% endif %}
+      <span class="name">{{ current_user.school.name if current_user.school else 'InsightScholar' }}</span>
     </div>
 
     <nav class="sidebar__nav">

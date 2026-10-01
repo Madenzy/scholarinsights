@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, abort
 from flask_login import login_required, current_user
 from models import db, School, User, Student, Class, Subject, AcademicTerm, Report
+from routes.validators import password_error
 
 superadmin_bp = Blueprint('superadmin', __name__, url_prefix='/superadmin')
 
@@ -139,8 +140,8 @@ def reset_password(id):
         password = request.form.get('password', '').strip()
         confirm = request.form.get('confirm', '').strip()
 
-        if len(password) < 6:
-            flash('Password must be at least 6 characters.', 'error')
+        if password_error(password):
+            flash(password_error(password), 'error')
         elif password != confirm:
             flash('Passwords do not match.', 'error')
         else:

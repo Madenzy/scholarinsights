@@ -2,3 +2,6 @@ __pycache__
 .env
 instance/*.db
 .claude/
+static/uploads/
+# Playwright CLI output (may contain credentials)
+.playwright-cli/

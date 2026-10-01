@@ -34,7 +34,10 @@
           <input id="username" name="username" type="text" required autofocus autocomplete="username" placeholder="Your username"/>
         </div>
         <div class="field">
-          <label for="password">Password</label>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <label for="password">Password</label>
+            <a href="{{ url_for('auth.forgot_password') }}" style="font-size:12.5px;color:var(--primary)">Forgot password?</a>
+          </div>
           <div class="password-input">
             <input id="password" name="password" type="password" required autocomplete="current-password" placeholder="••••••••"/>
             <button type="button" class="password-toggle" data-target="password" aria-label="Show password"></button>

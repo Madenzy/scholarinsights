@@ -27,7 +27,7 @@
       {% endfor %}
     {% endwith %}
 
-    <form method="POST" action="{{ url_for('auth.school_register') }}">
+    <form method="POST" action="{{ url_for('auth.school_register') }}" enctype="multipart/form-data">
       <div class="form-grid">
 
         <!-- School info -->
@@ -51,6 +51,18 @@
           <label for="school_address">Address</label>
           <input id="school_address" name="school_address" type="text" placeholder="123 School Road, City"/>
         </div>
+        <div class="form-row">
+          <div class="field">
+            <label for="logo">School Logo</label>
+            <input id="logo" name="logo" type="file" accept=".png,.jpg,.jpeg,.webp,.svg"/>
+            <span class="hint">PNG, JPG, WEBP or SVG, up to 2MB. Optional: shown in your sidebar and portal.</span>
+          </div>
+          <div class="field" style="max-width:160px">
+            <label for="theme_color">Theme Color</label>
+            <input id="theme_color" name="theme_color" type="color" value="{{ default_theme_color }}"
+                   style="height:42px;padding:4px;cursor:pointer"/>
+          </div>
+        </div>
 
         <!-- Admin account -->
         <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin:8px 0 -8px">Administrator Account</p>
@@ -72,9 +84,13 @@
         <div class="field">
           <label for="password">Password *</label>
           <div class="password-input">
-            <input id="password" name="password" type="password" required minlength="6" placeholder="Min. 6 characters"/>
+            <input id="password" name="password" type="password" required minlength="12" autocomplete="new-password"
+                   pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{12,}"
+                   title="At least 12 characters, with an uppercase letter, a lowercase letter, a number, and a special character."
+                   placeholder="Min. 12 characters"/>
             <button type="button" class="password-toggle" data-target="password" aria-label="Show password"></button>
           </div>
+          <span class="hint">At least 12 characters, with an uppercase letter, a lowercase letter, a number, and a special character.</span>
         </div>
 
         <button type="submit" class="btn btn--primary btn--lg" style="width:100%;justify-content:center;margin-top:4px">

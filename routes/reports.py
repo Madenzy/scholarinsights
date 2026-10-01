@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from models import db, Report, Student, AcademicTerm, Subject, Grade, calculate_grade
 from routes.utils import school_id, staff_required, admin_required
+from routes.emails import send_report_published_email
 
 reports_bp = Blueprint('reports', __name__, url_prefix='/reports')
 
@@ -137,7 +138,15 @@ def publish(id):
     report = Report.query.filter_by(id=id, school_id=school_id()).first_or_404()
     report.status = 'published'
     db.session.commit()
-    flash('Report published.', 'success')
+
+    sent, total = send_report_published_email(report)
+    if not total:
+        flash('Report published.', 'success')
+    elif sent:
+        flash(f'Report published and emailed to {sent} recipient{"s" if sent != 1 else ""}.', 'success')
+    else:
+        flash('Report published, but the notification email could not be sent.', 'info')
+
     return redirect(url_for('reports.view', id=id))
 
 

@@ -2,7 +2,7 @@ import click
 from flask import Flask
 from flask_migrate import Migrate
 from config import Config
-from models import db, login_manager, User
+from models import db, login_manager, mail, User
 
 
 def create_app():
@@ -12,6 +12,7 @@ def create_app():
     db.init_app(app)
     Migrate(app, db)
     login_manager.init_app(app)
+    mail.init_app(app)
 
     from routes.auth import auth_bp
     from routes.dashboard import dashboard_bp

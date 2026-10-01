@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from models import db, User, Student
 from routes.utils import school_id, admin_required
+from routes.validators import password_error
 
 users_bp = Blueprint('users', __name__, url_prefix='/users')
 
@@ -37,6 +38,8 @@ def add_parent():
         error = None
         if not username or not password:
             error = 'Username and password are required.'
+        elif password_error(password):
+            error = password_error(password)
         elif not child_ids:
             error = 'Select at least one child.'
         elif User.query.filter_by(username=username).first():

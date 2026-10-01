@@ -8,6 +8,7 @@ from models import db, Student, Class, User
 from routes.utils import school_id, staff_required, admin_required
 from routes import student_import
 from routes.student_import import parse_upload, normalize_gender, parse_date, split_full_name
+from routes.validators import password_error
 
 students_bp = Blueprint('students', __name__, url_prefix='/students')
 
@@ -231,6 +232,8 @@ def create_account(id):
 
         if not username or not password:
             flash('Username and password are required.', 'error')
+        elif password_error(password):
+            flash(password_error(password), 'error')
         elif User.query.filter_by(username=username).first():
             flash('Username already taken.', 'error')
         else:

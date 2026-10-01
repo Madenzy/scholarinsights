@@ -1,5 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin
+from flask_mail import Mail
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 
@@ -8,6 +9,7 @@ login_manager = LoginManager()
 login_manager.login_view = 'auth.login'
 login_manager.login_message = 'Please log in to access this page.'
 login_manager.login_message_category = 'info'
+mail = Mail()
 
 GRADE_SCALE = [(80, 'A'), (65, 'B'), (50, 'C'), (40, 'D'), (0, 'F')]
 
@@ -34,6 +36,8 @@ class School(db.Model):
     email = db.Column(db.String(255), unique=True, nullable=False)
     phone = db.Column(db.String(50))
     address = db.Column(db.String(300))
+    logo_filename = db.Column(db.String(255))
+    theme_color = db.Column(db.String(7), nullable=False, default='#4f46e5')
     is_active = db.Column(db.Boolean, default=True, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
