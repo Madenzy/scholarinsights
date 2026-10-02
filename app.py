@@ -1,8 +1,12 @@
+import os
+
 import click
-from flask import Flask
+from flask import Flask, request, send_from_directory
 from flask_migrate import Migrate
 from config import Config
 from models import db, login_manager, mail, User
+
+FRONTEND_DIST = os.path.join(os.path.dirname(__file__), 'frontend', 'dist')
 
 
 def create_app():
@@ -21,11 +25,14 @@ def create_app():
     from routes.classes import classes_bp
     from routes.subjects import subjects_bp
     from routes.terms import terms_bp
+    from routes.grading import grading_bp
     from routes.portal import portal_bp
     from routes.users import users_bp
     from routes.superadmin import superadmin_bp
     from routes.legal import legal_bp
     from routes.landing import landing_bp
+    from routes.api.auth import api_auth_bp
+    from routes.api.dashboard import api_dashboard_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
@@ -34,11 +41,41 @@ def create_app():
     app.register_blueprint(classes_bp)
     app.register_blueprint(subjects_bp)
     app.register_blueprint(terms_bp)
+    app.register_blueprint(grading_bp)
     app.register_blueprint(portal_bp)
     app.register_blueprint(users_bp)
     app.register_blueprint(superadmin_bp)
     app.register_blueprint(legal_bp)
     app.register_blueprint(landing_bp)
+    app.register_blueprint(api_auth_bp)
+    app.register_blueprint(api_dashboard_bp)
+
+    @app.route('/assets/<path:filename>')
+    def spa_assets(filename):
+        return send_from_directory(os.path.join(FRONTEND_DIST, 'assets'), filename)
+
+    @app.route('/favicon.svg')
+    @app.route('/icons.svg')
+    def spa_public_files():
+        return send_from_directory(FRONTEND_DIST, request.path.lstrip('/'))
+
+    @app.route('/login')
+    @app.route('/register')
+    @app.route('/forgot-password')
+    @app.route('/reset-password/<path:token>')
+    @app.route('/verify-email')
+    def spa_auth_routes(token=None):
+        return _serve_spa()
+
+    def _serve_spa():
+        index_path = os.path.join(FRONTEND_DIST, 'index.html')
+        if not os.path.isfile(index_path):
+            return (
+                'The React app has not been built yet. Run `npm run build` in frontend/, '
+                'or use `npm run dev` and visit the Vite dev server directly during development.',
+                503,
+            )
+        return send_from_directory(FRONTEND_DIST, 'index.html')
 
     with app.app_context():
         db.create_all()

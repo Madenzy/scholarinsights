@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}Grading Scale | InsightScholar{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Grading Scale</h1>
+    <p class="sub">Set the letter grades and pass/fail boundaries used on your school's report cards.</p>
+  </div>
+</div>
+
+<div class="content" style="display:grid;grid-template-columns:1fr 360px;gap:20px;align-items:start">
+  <!-- List / bulk edit -->
+  <div class="card">
+    <div class="card-header"><h2>Grade Bands</h2></div>
+    {% if bands %}
+    {% for band in bands %}
+    <form id="delete-band-{{ band.id }}" method="POST" action="{{ url_for('grading.delete', id=band.id) }}" data-confirm="Remove grade &quot;{{ band.letter }}&quot;? Reports already using it keep their grade."></form>
+    {% endfor %}
+    <form method="POST" action="{{ url_for('grading.save') }}">
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Letter</th>
+              <th>Min Score (%)</th>
+              <th>Remark</th>
+              <th style="text-align:center">Pass</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for band in bands %}
+            <tr>
+              <td>
+                <input type="text" name="band_{{ band.id }}_letter" value="{{ band.letter }}" maxlength="4" required
+                       style="width:60px;padding:7px 10px;border:1px solid var(--border);border-radius:8px;font:inherit;text-align:center;text-transform:uppercase"/>
+              </td>
+              <td>
+                <input type="number" name="band_{{ band.id }}_min_score" value="{{ band.min_score|int }}" min="0" max="100" step="1" required
+                       style="width:90px;padding:7px 10px;border:1px solid var(--border);border-radius:8px;font:inherit"/>
+              </td>
+              <td>
+                <input type="text" name="band_{{ band.id }}_remark" value="{{ band.remark or '' }}" maxlength="50" placeholder="e.g. Excellent"
+                       style="width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:8px;font:inherit"/>
+              </td>
+              <td style="text-align:center">
+                <input type="checkbox" name="band_{{ band.id }}_is_pass" {{ 'checked' if band.is_pass }}/>
+              </td>
+              <td>
+                <button type="submit" form="delete-band-{{ band.id }}" class="btn btn--danger btn--sm">Delete</button>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div class="card-body" style="padding-top:14px">
+        <button type="submit" class="btn btn--primary">Save Changes</button>
+      </div>
+    </form>
+    {% else %}
+    <div class="empty-state"><p>No grade bands yet. Add your first one &rarr;</p></div>
+    {% endif %}
+  </div>
+
+  <!-- Add form -->
+  <div class="card">
+    <div class="card-header"><h2>Add Grade Band</h2></div>
+    <div class="card-body">
+      <form method="POST" action="{{ url_for('grading.add') }}">
+        <div class="form-grid">
+          <div class="form-row">
+            <div class="field">
+              <label for="letter">Letter *</label>
+              <input id="letter" name="letter" type="text" maxlength="4" required placeholder="e.g. E" style="text-transform:uppercase"/>
+            </div>
+            <div class="field">
+              <label for="min_score">Min Score (%) *</label>
+              <input id="min_score" name="min_score" type="number" min="0" max="100" required placeholder="e.g. 35"/>
+            </div>
+          </div>
+          <div class="field">
+            <label for="remark">Remark</label>
+            <input id="remark" name="remark" type="text" maxlength="50" placeholder="e.g. Work harder"/>
+          </div>
+          <div class="checkbox-row">
+            <input type="checkbox" id="is_pass" name="is_pass" checked/>
+            <label for="is_pass">Counts as a pass</label>
+          </div>
+          <button type="submit" class="btn btn--primary">Add Band</button>
+        </div>
+      </form>
+      <p class="hint" style="margin-top:16px">
+        A score is matched to the highest band whose minimum it meets or exceeds. Changing these only affects grades entered or edited afterward; existing report cards keep the grade they were given at the time.
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}

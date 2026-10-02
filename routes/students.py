@@ -8,7 +8,8 @@ from models import db, Student, Class, User
 from routes.utils import school_id, staff_required, admin_required
 from routes import student_import
 from routes.student_import import parse_upload, normalize_gender, parse_date, split_full_name
-from routes.validators import password_error
+from routes.validators import generate_password
+from routes.emails import send_account_credentials_email
 
 students_bp = Blueprint('students', __name__, url_prefix='/students')
 
@@ -228,15 +229,13 @@ def create_account(id):
     if request.method == 'POST':
         username = request.form.get('username', '').strip()
         email = request.form.get('email', '').strip()
-        password = request.form.get('password', '')
 
-        if not username or not password:
-            flash('Username and password are required.', 'error')
-        elif password_error(password):
-            flash(password_error(password), 'error')
+        if not username:
+            flash('Username is required.', 'error')
         elif User.query.filter_by(username=username).first():
             flash('Username already taken.', 'error')
         else:
+            password = generate_password()
             user = User(
                 username=username,
                 email=email or f'{username}@student.local',
@@ -249,8 +248,12 @@ def create_account(id):
             db.session.flush()
             student.user_id = user.id
             db.session.commit()
-            flash(f'Login account created for {student.full_name}.', 'success')
-            return redirect(url_for('students.detail', id=id))
+
+            emailed = send_account_credentials_email(user, password, 'student')
+            return render_template(
+                'students/account_created.html',
+                student=student, username=username, password=password, emailed=emailed,
+            )
 
     return render_template('students/create_account.html', student=student)
 

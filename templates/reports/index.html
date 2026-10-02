@@ -33,12 +33,22 @@
     </div>
   </form>
 
+  {% if current_user.is_admin and reports %}
+  <div class="gap-row mb-4" id="bulk-actions">
+    <button type="button" class="btn btn--ghost" id="bulk-print-btn" disabled>Print Selected</button>
+    <button type="button" class="btn btn--ghost" id="bulk-download-btn" disabled>Download Selected</button>
+    <span class="text-muted" id="bulk-count" style="align-self:center">0 selected</span>
+  </div>
+  {% endif %}
   <div class="card">
     {% if reports %}
     <div class="table-wrap">
       <table class="table">
         <thead>
           <tr>
+            {% if current_user.is_admin %}
+            <th style="width:32px"><input type="checkbox" id="select-all-reports"></th>
+            {% endif %}
             <th>Student</th>
             <th>Class</th>
             <th>Term</th>
@@ -52,6 +62,9 @@
         <tbody>
           {% for report in reports %}
           <tr>
+            {% if current_user.is_admin %}
+            <td><input type="checkbox" class="report-checkbox" value="{{ report.id }}"></td>
+            {% endif %}
             <td>
               <a href="{{ url_for('students.detail', id=report.student.id) }}" style="font-weight:600;color:var(--primary)">
                 {{ report.student.full_name }}
@@ -63,7 +76,7 @@
             <td>{{ report.average_score if report.average_score is not none else '-' }}{% if report.average_score is not none %}%{% endif %}</td>
             <td>
               {% if report.overall_grade != '-' %}
-              <span class="badge grade-{{ report.overall_grade }}">{{ report.overall_grade }}</span>
+              <span class="badge {{ 'badge--green' if report.overall_is_pass else 'badge--red' }}">{{ report.overall_grade }}</span>
               {% else %}-{% endif %}
             </td>
             <td>
@@ -95,4 +108,51 @@
     {% endif %}
   </div>
 </div>
+
+{% if current_user.is_admin and reports %}
+<script>
+(function () {
+  var selectAll = document.getElementById('select-all-reports');
+  var checkboxes = Array.prototype.slice.call(document.querySelectorAll('.report-checkbox'));
+  var printBtn = document.getElementById('bulk-print-btn');
+  var downloadBtn = document.getElementById('bulk-download-btn');
+  var countLabel = document.getElementById('bulk-count');
+
+  function selectedIds() {
+    return checkboxes.filter(function (c) { return c.checked; }).map(function (c) { return c.value; });
+  }
+
+  function refresh() {
+    var ids = selectedIds();
+    countLabel.textContent = ids.length + ' selected';
+    printBtn.disabled = ids.length === 0;
+    downloadBtn.disabled = ids.length === 0;
+    if (selectAll) {
+      selectAll.checked = ids.length > 0 && ids.length === checkboxes.length;
+    }
+  }
+
+  if (selectAll) {
+    selectAll.addEventListener('change', function () {
+      checkboxes.forEach(function (c) { c.checked = selectAll.checked; });
+      refresh();
+    });
+  }
+  checkboxes.forEach(function (c) { c.addEventListener('change', refresh); });
+
+  printBtn.addEventListener('click', function () {
+    var ids = selectedIds();
+    if (!ids.length) return;
+    window.open('{{ url_for("reports.bulk_print") }}?ids=' + ids.join(','), '_blank');
+  });
+  downloadBtn.addEventListener('click', function () {
+    var ids = selectedIds();
+    if (!ids.length) return;
+    window.location.href = '{{ url_for("reports.bulk_download") }}?ids=' + ids.join(',');
+  });
+
+  refresh();
+})();
+</script>
+{% endif %}
 {% endblock %}

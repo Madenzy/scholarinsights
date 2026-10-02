@@ -83,7 +83,7 @@
             <td>{{ report.average_score if report.average_score is not none else '-' }}{% if report.average_score is not none %}%{% endif %}</td>
             <td>
               {% if report.overall_grade != '-' %}
-              <span class="badge grade-{{ report.overall_grade }}">{{ report.overall_grade }}</span>
+              <span class="badge {{ 'badge--green' if report.overall_is_pass else 'badge--red' }}">{{ report.overall_grade }}</span>
               {% else %}-{% endif %}
             </td>
             <td>

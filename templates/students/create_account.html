@@ -12,7 +12,7 @@
       <span>Create Login</span>
     </div>
     <h1>Create Student Login</h1>
-    <p class="sub">Give {{ student.first_name }} a username and password to access their portal.</p>
+    <p class="sub">Give {{ student.first_name }} a username to access their portal. A password is generated automatically and emailed to them.</p>
   </div>
 </div>
 
@@ -29,19 +29,9 @@
             <span class="hint">The student will use this to log in.</span>
           </div>
           <div class="field">
-            <label for="email">Email <span class="hint">(optional)</span></label>
+            <label for="email">Email</label>
             <input id="email" name="email" type="email" placeholder="student@email.com"/>
-          </div>
-          <div class="field">
-            <label for="password">Password *</label>
-            <div class="password-input">
-              <input id="password" name="password" type="password" required minlength="12"
-                     pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{12,}"
-                     title="At least 12 characters, with an uppercase letter, a lowercase letter, a number, and a special character."
-                     placeholder="Min. 12 characters"/>
-              <button type="button" class="password-toggle" data-target="password" aria-label="Show password"></button>
-            </div>
-            <span class="hint">At least 12 characters, with an uppercase letter, a lowercase letter, a number, and a special character. Share it with the student and ask them to keep it safe.</span>
+            <span class="hint">Where the login details are sent. Leave blank if the student has no email, you'll need to share the password with them yourself.</span>
           </div>
           <div class="gap-row">
             <button type="submit" class="btn btn--primary">Create Account</button>

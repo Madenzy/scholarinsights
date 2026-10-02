@@ -1,0 +1,109 @@
+{% macro pdf_report_card(report, qr_data_uri, logo_data_uri, class_average, class_size, position_in_class, form_size, position_in_form, subjects_passed) %}
+<table style="width:100%;border-collapse:collapse;margin-bottom:12px">
+  <tr>
+    <td style="width:70%;vertical-align:top">
+      <table style="border-collapse:collapse">
+        <tr>
+          <td style="width:60px;vertical-align:top;padding-right:12px">
+            {% if logo_data_uri %}
+            <img src="{{ logo_data_uri }}" width="52" height="52"/>
+            {% else %}
+            <div style="width:52px;height:52px;background:#f1f1f1;border:1px solid #ccc;text-align:center;font-size:8px;color:#999;line-height:52px">LOGO</div>
+            {% endif %}
+          </td>
+          <td style="vertical-align:top">
+            <div style="font-size:16px;font-weight:bold;margin-bottom:3px">{{ report.school.name }}</div>
+            {% if report.school.phone %}<div style="font-size:9px;color:#666">Phone: {{ report.school.phone }}</div>{% endif %}
+            {% if report.school.email %}<div style="font-size:9px;color:#666">Email: {{ report.school.email }}</div>{% endif %}
+            {% if report.school.address %}<div style="font-size:9px;color:#666">{{ report.school.address }}</div>{% endif %}
+          </td>
+        </tr>
+      </table>
+    </td>
+    <td style="width:30%;text-align:right;vertical-align:top">
+      {% if qr_data_uri %}<img src="{{ qr_data_uri }}" width="70" height="70"/>{% endif %}
+    </td>
+  </tr>
+</table>
+
+<table style="width:100%;border-collapse:collapse;margin-bottom:14px;font-size:10px">
+  <tr>
+    <td style="width:50%;vertical-align:top;padding-right:10px">
+      <table style="width:100%;border-collapse:collapse">
+        <tr><td style="color:#666;padding:3px 0">Student ID</td><td style="text-align:right;font-weight:bold">{{ report.student.reg_number }}</td></tr>
+        <tr><td style="color:#666;padding:3px 0">Student Name</td><td style="text-align:right;font-weight:bold">{{ report.student.full_name }}</td></tr>
+        <tr><td style="color:#666;padding:3px 0">Form</td><td style="text-align:right;font-weight:bold">{{ report.student.class_.name if report.student.class_ else '-' }}</td></tr>
+        <tr><td style="color:#666;padding:3px 0">Term</td><td style="text-align:right;font-weight:bold">{{ report.term.name }}</td></tr>
+        <tr><td style="color:#666;padding:3px 0">Date</td><td style="text-align:right;font-weight:bold">{{ report.created_at.strftime('%Y-%m-%d') }}</td></tr>
+      </table>
+    </td>
+    <td style="width:50%;vertical-align:top">
+      <table style="width:100%;border-collapse:collapse">
+        <tr><td style="color:#666;padding:3px 0">Subjects Recorded</td><td style="text-align:right;font-weight:bold">{{ report.grades|length }}</td></tr>
+        <tr><td style="color:#666;padding:3px 0">Subjects Passed</td><td style="text-align:right;font-weight:bold">{{ subjects_passed }}</td></tr>
+        <tr><td style="color:#666;padding:3px 0">Overall Average</td><td style="text-align:right;font-weight:bold">{{ (report.average_score ~ '% (' ~ report.overall_grade ~ ')') if report.average_score is not none else '-' }}</td></tr>
+        <tr><td style="color:#666;padding:3px 0">Class Average</td><td style="text-align:right;font-weight:bold">{{ (class_average ~ '%') if class_average is not none else '-' }}</td></tr>
+        <tr><td style="color:#666;padding:3px 0">Position in Class</td><td style="text-align:right;font-weight:bold">{{ position_in_class ~ ' of ' ~ class_size if position_in_class else '-' }}</td></tr>
+        <tr><td style="color:#666;padding:3px 0">Position in Form</td><td style="text-align:right;font-weight:bold">{{ position_in_form ~ ' of ' ~ form_size if position_in_form else '-' }}</td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+
+{% if report.grades %}
+<table style="width:100%;border-collapse:collapse;margin-bottom:14px;font-size:10px;border:1px solid #ccc">
+  <tr style="background:#f5f5f5">
+    <th style="padding:6px;border:1px solid #ccc;text-align:left">Code</th>
+    <th style="padding:6px;border:1px solid #ccc;text-align:left">Subject</th>
+    <th style="padding:6px;border:1px solid #ccc;text-align:right">%</th>
+    <th style="padding:6px;border:1px solid #ccc;text-align:center">Grade</th>
+    <th style="padding:6px;border:1px solid #ccc;text-align:left">Remark</th>
+  </tr>
+  {% for grade in report.grades | sort(attribute='subject.name') %}
+  <tr>
+    <td style="padding:6px;border:1px solid #ccc;color:#666">{{ grade.subject.code }}</td>
+    <td style="padding:6px;border:1px solid #ccc;font-weight:bold">{{ grade.subject.name }}</td>
+    <td style="padding:6px;border:1px solid #ccc;text-align:right">{{ grade.score }}%</td>
+    <td style="padding:6px;border:1px solid #ccc;text-align:center">
+      <span style="padding:2px 8px;border-radius:3px;background:{{ '#dcfce7' if grade.is_pass else '#fee2e2' }};color:{{ '#166534' if grade.is_pass else '#991b1b' }}">{{ grade.grade_letter }}</span>
+    </td>
+    <td style="padding:6px;border:1px solid #ccc;color:#666">{{ grade.comment or grade.auto_remark or '-' }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% else %}
+<p style="font-size:10px;color:#666">No grades recorded yet.</p>
+{% endif %}
+
+{% if report.teacher_comment or report.head_comment %}
+<div style="background:#f7f7f7;border-radius:4px;padding:10px 12px;margin-bottom:14px;font-size:10px">
+  <strong style="display:block;font-size:9px;text-transform:uppercase;color:#666;margin-bottom:5px">Teacher's Comment</strong>
+  <p style="margin:0;font-style:italic">{{ report.teacher_comment or '-' }}</p>
+  {% if report.head_comment %}
+  <p style="margin:8px 0 0;padding-top:8px;border-top:1px solid #ddd;font-style:italic">
+    <strong style="font-style:normal;text-transform:uppercase;font-size:9px;color:#666">Head's Comment: </strong>{{ report.head_comment }}
+  </p>
+  {% endif %}
+</div>
+{% endif %}
+
+<div style="font-size:9px;color:#444;border-top:1px solid #ddd;padding-top:10px;margin-bottom:20px">
+  <strong style="display:block;margin-bottom:4px">Explanatory Notes &amp; Grading System</strong>
+  <div>1. Grading scale: {% for band in report.school.grade_bands %}{{ band.letter }} ({{ band.min_score|int }}%+) {{ band.remark or ('Pass' if band.is_pass else 'Fail') }}{% if not loop.last %}, {% endif %}{% endfor %}.</div>
+  <div>2. Verification: Scan the QR code above to view this report online.</div>
+</div>
+
+<table style="width:100%;margin-bottom:10px">
+  <tr>
+    <td style="font-size:10px;font-weight:bold;vertical-align:bottom">The Head</td>
+    <td style="width:120px;text-align:center;border:1px dashed #999;font-size:8px;color:#999;height:50px;vertical-align:middle">School Stamp</td>
+  </tr>
+</table>
+
+<table style="width:100%;font-size:8px;color:#999;border-top:1px solid #ddd">
+  <tr>
+    <td style="padding-top:6px">This report is electronically generated.</td>
+    <td style="padding-top:6px;text-align:right">Powered by InsightScholar</td>
+  </tr>
+</table>
+{% endmacro %}

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% from "reports/_card.html" import report_card %}
+{% block title %}Bulk Print | InsightScholar{% endblock %}
+
+{% block head %}
+<style>
+  @media print {
+    .no-print { display: none !important; }
+    .main { margin-left: 0; }
+    .sidebar { display: none; }
+    body { background: #fff; }
+    .bulk-card { page-break-after: always; }
+    .bulk-card:last-child { page-break-after: auto; }
+  }
+  .bulk-card + .bulk-card { margin-top: 24px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header no-print">
+  <div>
+    <h1>Bulk Print</h1>
+    <p class="sub">{{ cards|length }} report{{ 's' if cards|length != 1 }}</p>
+  </div>
+  <div style="display:flex;gap:10px">
+    <button onclick="window.print()" class="btn btn--primary">Print All</button>
+    <a href="{{ url_for('reports.index') }}" class="btn btn--ghost">Back</a>
+  </div>
+</div>
+
+<div class="content">
+  {% for card in cards %}
+  <div class="card report-card bulk-card">
+    <div class="card-body">
+      {{ report_card(card.report, card.qr_svg, card.class_average, card.class_size, card.position_in_class, card.form_size, card.position_in_form, card.subjects_passed) }}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

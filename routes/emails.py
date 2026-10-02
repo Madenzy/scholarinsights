@@ -74,6 +74,36 @@ def send_password_reset_email(user, reset_url):
         return False
 
 
+def send_account_credentials_email(user, password, role_label='account'):
+    """Email a newly created user their username and auto-generated password.
+
+    Returns True on success, False if there's nowhere to send it or sending
+    failed. Never raises.
+    """
+    if not _is_real_email(user.email):
+        return False
+
+    login_url = url_for('auth.login', _external=True)
+    subject = f'Your InsightScholar {role_label} login'
+    body = (
+        f"Hello {user.display_name},\n\n"
+        f"An InsightScholar {role_label} account has been created for you.\n\n"
+        f"Username: {user.username}\n"
+        f"Password: {password}\n\n"
+        f"Sign in here: {login_url}\n"
+        f"We recommend changing your password after your first login.\n\n"
+        f"InsightScholar"
+    )
+
+    try:
+        msg = Message(subject=subject, recipients=[user.email], body=body)
+        mail.send(msg)
+        return True
+    except Exception:
+        current_app.logger.exception('Failed to send account credentials email for user %s', user.id)
+        return False
+
+
 def send_verification_code_email(email, code):
     """Email a one-time code to confirm an address during school registration."""
     subject = 'Confirm your email - InsightScholar'

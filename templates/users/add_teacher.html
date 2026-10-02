@@ -5,12 +5,12 @@
 <div class="page-header">
   <div>
     <div class="breadcrumb">
-      <a href="{{ url_for('users.index') }}">Users</a>
+      <a href="{{ url_for('users.teachers') }}">Teachers</a>
       <span>/</span>
       <span>Add Teacher</span>
     </div>
     <h1>Add Teacher</h1>
-    <p class="sub">Create a staff login for a teacher at {{ current_user.school.name }}</p>
+    <p class="sub">Create a staff login for a teacher at {{ current_user.school.name }}. A password is generated automatically and emailed to them.</p>
   </div>
 </div>
 
@@ -34,20 +34,9 @@
               <input id="email" name="email" type="email" required placeholder="jdoe@school.edu"/>
             </div>
           </div>
-          <div class="field">
-            <label for="password">Password *</label>
-            <div class="password-input">
-              <input id="password" name="password" type="password" required minlength="12"
-                     pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{12,}"
-                     title="At least 12 characters, with an uppercase letter, a lowercase letter, a number, and a special character."
-                     placeholder="Min. 12 characters"/>
-              <button type="button" class="password-toggle" data-target="password" aria-label="Show password"></button>
-            </div>
-            <span class="hint">At least 12 characters, with an uppercase letter, a lowercase letter, a number, and a special character.</span>
-          </div>
           <div class="gap-row">
             <button type="submit" class="btn btn--primary">Create Teacher Account</button>
-            <a href="{{ url_for('users.index') }}" class="btn btn--ghost">Cancel</a>
+            <a href="{{ url_for('users.teachers') }}" class="btn btn--ghost">Cancel</a>
           </div>
         </div>
       </form>

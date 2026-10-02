@@ -67,7 +67,7 @@
       <div>
         <div class="stat-card__label">Overall Grade</div>
         {% if report.overall_grade != '-' %}
-          <span class="badge grade-{{ report.overall_grade }}" style="font-size:28px;padding:8px 18px;border-radius:10px">{{ report.overall_grade }}</span>
+          <span class="badge {{ 'badge--green' if report.overall_is_pass else 'badge--red' }}" style="font-size:28px;padding:8px 18px;border-radius:10px">{{ report.overall_grade }}</span>
         {% else %}
           <span class="text-muted">-</span>
         {% endif %}
@@ -99,7 +99,7 @@
             <td><span class="text-muted">{{ grade.subject.code }}</span></td>
             <td style="text-align:right;font-weight:600">{{ grade.score }}%</td>
             <td style="text-align:center">
-              <span class="badge grade-{{ grade.grade_letter }}">{{ grade.grade_letter }}</span>
+              <span class="badge {{ 'badge--green' if grade.is_pass else 'badge--red' }}">{{ grade.grade_letter }}</span>
             </td>
             <td class="text-muted">{{ grade.comment or '-' }}</td>
           </tr>
@@ -110,11 +110,9 @@
 
     <div class="gap-row mt-4">
       <span class="text-muted" style="align-self:center">Grade Scale:</span>
-      <span class="badge grade-A">A: 80–100</span>
-      <span class="badge grade-B">B: 65–79</span>
-      <span class="badge grade-C">C: 50–64</span>
-      <span class="badge grade-D">D: 40–49</span>
-      <span class="badge grade-F">F: 0–39</span>
+      {% for band in report.school.grade_bands %}
+      <span class="badge {{ 'badge--green' if band.is_pass else 'badge--red' }}">{{ band.letter }}: {{ band.min_score|int }}+</span>
+      {% endfor %}
     </div>
     {% endif %}
 

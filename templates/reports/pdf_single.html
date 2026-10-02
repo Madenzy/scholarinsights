@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @page { size: A4; margin: 1.5cm; }
+  body { font-family: Helvetica, Arial, sans-serif; color: #222; font-size: 11px; }
+  h2 { font-size: 15px; margin: 0 0 14px; text-transform: uppercase; letter-spacing: 1px; }
+</style>
+</head>
+<body>
+{% from "reports/_pdf_card.html" import pdf_report_card %}
+<h2>Student Report Card</h2>
+{{ pdf_report_card(report, qr_data_uri, logo_data_uri, class_average, class_size, position_in_class, form_size, position_in_form, subjects_passed) }}
+</body>
+</html>

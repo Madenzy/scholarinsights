@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Login Created | InsightScholar{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="breadcrumb">
+      <a href="{{ back_url }}">{{ back_label }}</a>
+      <span>/</span>
+      <span>Login Created</span>
+    </div>
+    <h1>Login Created</h1>
+  </div>
+</div>
+
+<div class="content">
+  <div class="card" style="max-width:440px">
+    <div class="card-header"><h2>{{ display_name }}</h2></div>
+    <div class="card-body">
+      {% if emailed %}
+      <p class="hint" style="margin-top:0">The username and password below have been emailed to {{ display_name }}.</p>
+      {% else %}
+      <div class="alert alert--info" style="margin-bottom:16px">
+        No email was sent. Share this password with {{ display_name }} yourself; it will not be shown again.
+      </div>
+      {% endif %}
+
+      <div class="form-grid">
+        <div class="field">
+          <label>Username</label>
+          <input type="text" value="{{ username }}" readonly/>
+        </div>
+        <div class="field">
+          <label for="generatedPassword">Password</label>
+          <div style="display:flex;gap:8px">
+            <input id="generatedPassword" type="text" value="{{ password }}" readonly
+                   style="font-family:monospace"/>
+            <button type="button" id="copyPasswordBtn" class="btn btn--ghost" style="flex:none">Copy</button>
+          </div>
+          <span class="hint">This is the only time this password is shown. Copy it now if you need it.</span>
+        </div>
+        <div class="gap-row">
+          <a href="{{ back_url }}" class="btn btn--primary">Done</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  (function () {
+    var btn = document.getElementById('copyPasswordBtn');
+    var input = document.getElementById('generatedPassword');
+    if (!btn || !input) return;
+    btn.addEventListener('click', function () {
+      navigator.clipboard.writeText(input.value).then(function () {
+        var original = btn.textContent;
+        btn.textContent = 'Copied';
+        setTimeout(function () { btn.textContent = original; }, 1500);
+      }).catch(function () {
+        input.select();
+      });
+    });
+  })();
+</script>
+{% endblock %}

@@ -11,14 +11,30 @@ login_manager.login_message = 'Please log in to access this page.'
 login_manager.login_message_category = 'info'
 mail = Mail()
 
-GRADE_SCALE = [(80, 'A'), (65, 'B'), (50, 'C'), (40, 'D'), (0, 'F')]
+# Seeded onto every new school (and backfilled onto existing ones) as a
+# starting point; schools can add/edit/remove bands from there via the
+# Grading settings page.
+DEFAULT_GRADE_BANDS = [
+    # (letter, min_score, remark, is_pass)
+    ('A', 80, 'Excellent', True),
+    ('B', 65, 'Well done', True),
+    ('C', 50, 'Satisfactory', True),
+    ('D', 40, 'Needs improvement', True),
+    ('F', 0, 'Work harder', False),
+]
 
 
-def calculate_grade(score):
-    for boundary, letter in GRADE_SCALE:
-        if score >= boundary:
-            return letter
-    return 'F'
+def calculate_grade(score, bands):
+    """Return the GradeBand whose range a score falls into.
+
+    `bands` is any iterable of objects with .min_score/.letter/.is_pass/.remark
+    (i.e. a school's GradeBand rows). Returns None if `bands` is empty.
+    """
+    ordered = sorted(bands, key=lambda b: b.min_score, reverse=True)
+    for band in ordered:
+        if score >= band.min_score:
+            return band
+    return ordered[-1] if ordered else None
 
 
 # Parent ↔ Student many-to-many
@@ -43,6 +59,26 @@ class School(db.Model):
 
     students = db.relationship('Student', backref='school', lazy=True, foreign_keys='Student.school_id')
     reports = db.relationship('Report', backref='school', lazy=True, foreign_keys='Report.school_id')
+    grade_bands = db.relationship(
+        'GradeBand', backref='school', lazy=True, cascade='all, delete-orphan',
+        order_by='GradeBand.min_score.desc()',
+    )
+
+
+class GradeBand(db.Model):
+    """One letter grade's range for a school, e.g. A starting at 80%."""
+    __tablename__ = 'grade_bands'
+    id = db.Column(db.Integer, primary_key=True)
+    school_id = db.Column(db.Integer, db.ForeignKey('schools.id'), nullable=False)
+    letter = db.Column(db.String(4), nullable=False)
+    min_score = db.Column(db.Float, nullable=False)
+    remark = db.Column(db.String(50))
+    is_pass = db.Column(db.Boolean, nullable=False, default=True)
+    sort_order = db.Column(db.Integer, nullable=False, default=0)
+
+    __table_args__ = (
+        db.UniqueConstraint('school_id', 'letter', name='uq_gradeband_school_letter'),
+    )
 
 
 class User(UserMixin, db.Model):
@@ -119,11 +155,12 @@ class Student(db.Model):
     class_id = db.Column(db.Integer, db.ForeignKey('classes.id'), nullable=True)
     school_id = db.Column(db.Integer, db.ForeignKey('schools.id'), nullable=False)
     # Optional login account for this student
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), unique=True, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     login_user = db.relationship(
-        'User', foreign_keys=[user_id], backref='student_profile', uselist=False
+        'User', foreign_keys=[user_id],
+        backref=db.backref('student_profile', uselist=False),
     )
     reports = db.relationship('Report', backref='student', lazy=True, cascade='all, delete-orphan')
 
@@ -192,9 +229,21 @@ class Report(db.Model):
         return round(sum(g.score for g in self.grades) / len(self.grades), 1)
 
     @property
-    def overall_grade(self):
+    def overall_band(self):
         avg = self.average_score
-        return calculate_grade(avg) if avg is not None else '-'
+        if avg is None:
+            return None
+        return calculate_grade(avg, self.school.grade_bands)
+
+    @property
+    def overall_grade(self):
+        band = self.overall_band
+        return band.letter if band else '-'
+
+    @property
+    def overall_is_pass(self):
+        band = self.overall_band
+        return band.is_pass if band else True
 
 
 class Grade(db.Model):
@@ -203,7 +252,9 @@ class Grade(db.Model):
     report_id = db.Column(db.Integer, db.ForeignKey('reports.id'), nullable=False)
     subject_id = db.Column(db.Integer, db.ForeignKey('subjects.id'), nullable=False)
     score = db.Column(db.Float, nullable=False)
-    grade_letter = db.Column(db.String(2))
+    grade_letter = db.Column(db.String(4))
+    is_pass = db.Column(db.Boolean, nullable=False, default=True)
+    auto_remark = db.Column(db.String(50))
     comment = db.Column(db.String(255))
 
     __table_args__ = (

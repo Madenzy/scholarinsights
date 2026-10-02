@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Teachers | InsightScholar{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Teachers</h1>
+    <p class="sub">{{ teachers|length }} teacher{{ 's' if teachers|length != 1 }} at {{ current_user.school.name }}</p>
+  </div>
+  <a href="{{ url_for('auth.add_teacher') }}" class="btn btn--primary">
+    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    Add Teacher
+  </a>
+</div>
+
+<div class="content">
+  <div class="card">
+    {% if teachers %}
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Username</th>
+            <th>Email</th>
+            <th>Classes</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for t in teachers %}
+          <tr>
+            <td><strong>{{ t.display_name }}</strong></td>
+            <td class="text-muted">{{ t.username }}</td>
+            <td class="text-muted">{{ t.email }}</td>
+            <td>
+              {% for c in t.classes %}
+                <span class="badge badge--gray">{{ c.name }}</span>
+              {% else %}
+                <span class="text-muted">None</span>
+              {% endfor %}
+            </td>
+            <td>
+              {% if t.id != current_user.id %}
+              <form method="POST" action="{{ url_for('users.delete', id=t.id) }}" data-confirm="Delete account for {{ t.display_name }}?">
+                <button type="submit" class="btn btn--danger btn--sm">Delete</button>
+              </form>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <p>No teachers yet. <a href="{{ url_for('auth.add_teacher') }}" style="color:var(--primary)">Add the first one</a>.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
