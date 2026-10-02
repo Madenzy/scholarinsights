@@ -34,7 +34,9 @@
   </form>
 
   {% if current_user.is_admin and reports %}
-  <div class="gap-row mb-4" id="bulk-actions">
+  <div class="gap-row mb-4" id="bulk-actions"
+       data-bulk-print-url="{{ url_for('reports.bulk_print') }}"
+       data-bulk-download-url="{{ url_for('reports.bulk_download') }}">
     <button type="button" class="btn btn--ghost" id="bulk-print-btn" disabled>Print Selected</button>
     <button type="button" class="btn btn--ghost" id="bulk-download-btn" disabled>Download Selected</button>
     <span class="text-muted" id="bulk-count" style="align-self:center">0 selected</span>
@@ -91,6 +93,7 @@
                 <a href="{{ url_for('reports.view', id=report.id) }}" class="btn btn--ghost btn--sm">View</a>
                 <a href="{{ url_for('reports.edit', id=report.id) }}" class="btn btn--ghost btn--sm">Edit</a>
                 <form method="POST" action="{{ url_for('reports.delete', id=report.id) }}" data-confirm="Delete this report?">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                   <button type="submit" class="btn btn--danger btn--sm">Delete</button>
                 </form>
               </div>
@@ -110,49 +113,6 @@
 </div>
 
 {% if current_user.is_admin and reports %}
-<script>
-(function () {
-  var selectAll = document.getElementById('select-all-reports');
-  var checkboxes = Array.prototype.slice.call(document.querySelectorAll('.report-checkbox'));
-  var printBtn = document.getElementById('bulk-print-btn');
-  var downloadBtn = document.getElementById('bulk-download-btn');
-  var countLabel = document.getElementById('bulk-count');
-
-  function selectedIds() {
-    return checkboxes.filter(function (c) { return c.checked; }).map(function (c) { return c.value; });
-  }
-
-  function refresh() {
-    var ids = selectedIds();
-    countLabel.textContent = ids.length + ' selected';
-    printBtn.disabled = ids.length === 0;
-    downloadBtn.disabled = ids.length === 0;
-    if (selectAll) {
-      selectAll.checked = ids.length > 0 && ids.length === checkboxes.length;
-    }
-  }
-
-  if (selectAll) {
-    selectAll.addEventListener('change', function () {
-      checkboxes.forEach(function (c) { c.checked = selectAll.checked; });
-      refresh();
-    });
-  }
-  checkboxes.forEach(function (c) { c.addEventListener('change', refresh); });
-
-  printBtn.addEventListener('click', function () {
-    var ids = selectedIds();
-    if (!ids.length) return;
-    window.open('{{ url_for("reports.bulk_print") }}?ids=' + ids.join(','), '_blank');
-  });
-  downloadBtn.addEventListener('click', function () {
-    var ids = selectedIds();
-    if (!ids.length) return;
-    window.location.href = '{{ url_for("reports.bulk_download") }}?ids=' + ids.join(',');
-  });
-
-  refresh();
-})();
-</script>
+<script src="{{ url_for('static', filename='js/reports_bulk.js') }}"></script>
 {% endif %}
 {% endblock %}

@@ -21,8 +21,12 @@ export default function Login() {
     setError(null)
     setSubmitting(true)
     try {
-      await login(username, password, remember)
-      navigate('/', { replace: true })
+      const result = await login(username, password, remember)
+      if (result.mfa_required) {
+        navigate('/verify-mfa', { state: { method: result.method }, replace: true })
+      } else {
+        navigate('/', { replace: true })
+      }
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Something went wrong. Please try again.')
     } finally {

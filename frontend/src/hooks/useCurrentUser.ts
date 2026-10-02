@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { fetchMe, login as apiLogin, logout as apiLogout } from '../api/auth'
+import type { CurrentUser } from '../types'
 
 export function useCurrentUser() {
   const query = useQuery({
@@ -18,8 +19,15 @@ export function useAuthActions() {
 
   async function login(username: string, password: string, remember: boolean) {
     const result = await apiLogin(username, password, remember)
+    if (result.mfa_required) {
+      return result
+    }
     queryClient.setQueryData(['me'], { user: result.user })
-    return result.user
+    return result
+  }
+
+  function completeMfaLogin(user: CurrentUser) {
+    queryClient.setQueryData(['me'], { user })
   }
 
   async function logout() {
@@ -28,5 +36,5 @@ export function useAuthActions() {
     queryClient.clear()
   }
 
-  return { login, logout }
+  return { login, logout, completeMfaLogin }
 }

@@ -9,15 +9,16 @@
   </div>
 </div>
 
-<div class="content" style="display:grid;grid-template-columns:1fr 360px;gap:20px;align-items:start">
+<div class="content page-cols">
   <!-- List / bulk edit -->
   <div class="card">
     <div class="card-header"><h2>Grade Bands</h2></div>
     {% if bands %}
     {% for band in bands %}
-    <form id="delete-band-{{ band.id }}" method="POST" action="{{ url_for('grading.delete', id=band.id) }}" data-confirm="Remove grade &quot;{{ band.letter }}&quot;? Reports already using it keep their grade."></form>
+    <form id="delete-band-{{ band.id }}" method="POST" action="{{ url_for('grading.delete', id=band.id) }}" data-confirm="Remove grade &quot;{{ band.letter }}&quot;? Reports already using it keep their grade."><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"></form>
     {% endfor %}
     <form method="POST" action="{{ url_for('grading.save') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div class="table-wrap">
         <table class="table">
           <thead>
@@ -69,6 +70,7 @@
     <div class="card-header"><h2>Add Grade Band</h2></div>
     <div class="card-body">
       <form method="POST" action="{{ url_for('grading.add') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="form-grid">
           <div class="form-row">
             <div class="field">

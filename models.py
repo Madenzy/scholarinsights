@@ -1,10 +1,32 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin
 from flask_mail import Mail
-from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.security import check_password_hash as _legacy_check_password_hash
+from argon2 import PasswordHasher
+from argon2.exceptions import VerifyMismatchError
 from datetime import datetime
 
 db = SQLAlchemy()
+_ph = PasswordHasher()
+
+
+def hash_password(password):
+    """Argon2id-hash a password. Use this (or User.set_password) for every
+    new/changed password instead of calling a hashing library directly, so
+    hashing stays consistent even at call sites that pre-hash before a User
+    row exists yet (e.g. a pending-registration flow held in the session)."""
+    return _ph.hash(password)
+
+
+def verify_hash(hash_value, plain):
+    """Argon2id-verify any Argon2id hash against a plaintext value -- reused
+    for MFA backup codes as well as passwords, since both are one-way-hashed
+    secrets checked the same way."""
+    try:
+        _ph.verify(hash_value, plain)
+        return True
+    except VerifyMismatchError:
+        return False
 login_manager = LoginManager()
 login_manager.login_view = 'auth.login'
 login_manager.login_message = 'Please log in to access this page.'
@@ -94,6 +116,22 @@ class User(UserMixin, db.Model):
     is_active = db.Column(db.Boolean, default=True, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+    # Login throttling (per-account, complements IP-based rate limiting)
+    failed_login_attempts = db.Column(db.Integer, default=0, nullable=False)
+    locked_until = db.Column(db.DateTime, nullable=True)
+
+    # MFA: 'totp' (authenticator app) or 'email' (one-time code by mail),
+    # admin's/account's choice. mfa_backup_codes is a JSON list of
+    # Argon2id-hashed one-time recovery codes.
+    mfa_enabled = db.Column(db.Boolean, default=False, nullable=False)
+    mfa_method = db.Column(db.String(10), nullable=True)
+    mfa_totp_secret = db.Column(db.String(32), nullable=True)
+    mfa_backup_codes = db.Column(db.Text, nullable=True)
+    # Admin-enforced (distinct from mfa_enabled, which is self-enrollment
+    # state): when true and mfa_enabled is still false, the post-login gate
+    # in app.py redirects the account to enroll before it can use the app.
+    mfa_required = db.Column(db.Boolean, default=False, nullable=False)
+
     school = db.relationship('School', backref='users')
     # For teachers: classes they own
     classes = db.relationship('Class', backref='teacher', lazy=True, foreign_keys='Class.teacher_id')
@@ -101,10 +139,27 @@ class User(UserMixin, db.Model):
     children = db.relationship('Student', secondary=parent_student, backref='parents', lazy=True)
 
     def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
+        self.password_hash = hash_password(password)
 
     def check_password(self, password):
-        return check_password_hash(self.password_hash, password)
+        if self.password_hash.startswith('$argon2'):
+            try:
+                _ph.verify(self.password_hash, password)
+            except VerifyMismatchError:
+                return False
+            if _ph.check_needs_rehash(self.password_hash):
+                self.set_password(password)
+                db.session.commit()
+            return True
+
+        # Legacy werkzeug (pbkdf2/scrypt) hash from before the Argon2id
+        # migration. Can't be converted without the plaintext, so transparently
+        # upgrade it here, the only place the plaintext is ever available.
+        if not _legacy_check_password_hash(self.password_hash, password):
+            return False
+        self.set_password(password)
+        db.session.commit()
+        return True
 
     @property
     def is_super_admin(self):
@@ -260,3 +315,27 @@ class Grade(db.Model):
     __table_args__ = (
         db.UniqueConstraint('report_id', 'subject_id', name='uq_report_subject'),
     )
+
+
+class AuditLog(db.Model):
+    """Append-only record of security- and data-relevant actions across the
+    app. Never updated or deleted by any route -- only ever inserted via
+    audit.log_audit_event()."""
+    __tablename__ = 'audit_logs'
+    id = db.Column(db.Integer, primary_key=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
+    actor_user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True, index=True)
+    actor_role = db.Column(db.String(20), nullable=True)  # snapshot at the time of the action
+    school_id = db.Column(db.Integer, db.ForeignKey('schools.id'), nullable=True, index=True)
+    action = db.Column(db.String(50), nullable=False, index=True)
+    resource_type = db.Column(db.String(30), nullable=True)
+    resource_id = db.Column(db.Integer, nullable=True)
+    result = db.Column(db.String(10), nullable=False, default='success')  # success | failure | blocked
+    ip_address = db.Column(db.String(45), nullable=True)
+    user_agent = db.Column(db.String(255), nullable=True)
+    request_id = db.Column(db.String(32), nullable=True)
+    changes = db.Column(db.Text, nullable=True)  # JSON string: {field: {old, new}} or {field: "UPDATED"}
+    extra = db.Column(db.Text, nullable=True)  # JSON string: any other non-sensitive context
+
+    actor = db.relationship('User', foreign_keys=[actor_user_id])
+    school = db.relationship('School', foreign_keys=[school_id])

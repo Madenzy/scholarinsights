@@ -4,6 +4,7 @@ from models import db, User
 from routes.utils import admin_required
 from routes.validators import generate_password
 from routes.emails import send_account_credentials_email
+from audit import log_audit_event
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
 
@@ -47,6 +48,7 @@ def verify_email():
 @auth_bp.route('/logout')
 @login_required
 def logout():
+    log_audit_event('LOGOUT', actor=current_user)
     logout_user()
     return redirect(_SPA_REDIRECTS['login'])
 
@@ -80,6 +82,8 @@ def add_teacher():
             user.set_password(password)
             db.session.add(user)
             db.session.commit()
+            log_audit_event('USER_CREATED', actor=current_user, school_id=current_user.school_id,
+                             resource_type='user', resource_id=user.id, extra={'role': 'teacher'})
 
             emailed = send_account_credentials_email(user, password, 'teacher')
             return render_template(

@@ -38,6 +38,14 @@ def view_report(id):
 
     report = Report.query.get_or_404(id)
 
+    # Defense in depth: a logged-in staff/admin account from a *different*
+    # school should never reach the role checks below. They're redirected to
+    # the staff report view above, which is itself school-scoped, so this
+    # isn't reachable today -- but this guard keeps it that way even if that
+    # redirect ever changes.
+    if current_user.school_id and report.school_id != current_user.school_id:
+        abort(404)
+
     # Only published reports are visible in the portal
     if report.status != 'published':
         abort(403)

@@ -4,6 +4,7 @@ from models import db, User, Student
 from routes.utils import school_id, admin_required
 from routes.validators import generate_password
 from routes.emails import send_account_credentials_email
+from audit import log_audit_event
 
 users_bp = Blueprint('users', __name__, url_prefix='/users')
 
@@ -71,6 +72,9 @@ def add_parent():
             parent.children = children
             db.session.add(parent)
             db.session.commit()
+            log_audit_event('USER_CREATED', actor=current_user, school_id=sid,
+                             resource_type='user', resource_id=parent.id,
+                             extra={'role': 'parent', 'linked_student_ids': child_ids})
 
             emailed = send_account_credentials_email(parent, password, 'parent')
             return render_template(
@@ -97,7 +101,10 @@ def delete(id):
     if user.role == 'student' and user.student_profile:
         user.student_profile.user_id = None
 
+    deleted_role = user.role
     db.session.delete(user)
     db.session.commit()
+    log_audit_event('USER_DELETED', actor=current_user, school_id=sid,
+                     resource_type='user', resource_id=id, extra={'role': deleted_role})
     flash(f'Account for {user.display_name} deleted.', 'success')
     return redirect(url_for('users.index'))

@@ -1,0 +1,163 @@
+{% extends "superadmin/base.html" %}
+{% block title %}Security Centre{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Security Centre</h1>
+    <p class="sub">Real-time security signals across every school, drawn from the audit log.</p>
+  </div>
+</div>
+
+<div class="content">
+  <div class="stats-grid stats-grid--3 mb-4">
+    <div class="stat-card">
+      <div><div class="stat-card__value">{{ locked_accounts|length }}</div><div class="stat-card__label">Locked accounts right now</div></div>
+    </div>
+    <div class="stat-card">
+      <div><div class="stat-card__value">{{ unauthorized_attempts|length }}</div><div class="stat-card__label">Unauthorized access attempts</div></div>
+    </div>
+    <div class="stat-card">
+      <div><div class="stat-card__value">{{ malware_detections|length }}</div><div class="stat-card__label">Malware detections</div></div>
+    </div>
+  </div>
+
+  <div class="card mb-4">
+    <div class="card-header">
+      <h2>Locked Accounts</h2>
+    </div>
+    {% if locked_accounts %}
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>User</th><th>School</th><th>Locked until (UTC)</th><th>Actions</th></tr></thead>
+        <tbody>
+          {% for u in locked_accounts %}
+          <tr>
+            <td><strong>{{ u.display_name }}</strong><div class="text-muted" style="font-size:12px">{{ u.username }}</div></td>
+            <td class="text-muted">{{ u.school.name if u.school else '-' }}</td>
+            <td class="text-muted">{{ u.locked_until.strftime('%Y-%m-%d %H:%M') }}</td>
+            <td>
+              <form method="POST" action="{{ url_for('superadmin.disable_user', id=u.id) }}" data-confirm="Disable {{ u.display_name }}?">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn--danger btn--sm">Disable Account</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state"><p>No accounts are currently locked.</p></div>
+    {% endif %}
+  </div>
+
+  <div class="card mb-4">
+    <div class="card-header">
+      <h2>Unauthorized Access Attempts</h2>
+      <a href="{{ url_for('superadmin.audit_logs', action='UNAUTHORIZED_ACCESS_ATTEMPT') }}" class="btn btn--ghost btn--sm">View all</a>
+    </div>
+    {% if unauthorized_attempts %}
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Time</th><th>Actor</th><th>Resource</th><th>Reason</th><th>IP</th></tr></thead>
+        <tbody>
+          {% for log in unauthorized_attempts %}
+          <tr>
+            <td class="text-muted" style="white-space:nowrap">{{ log.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+            <td>{{ log.actor.display_name if log.actor else '-' }}</td>
+            <td class="text-muted">{{ log.resource_type }}{% if log.resource_id %} #{{ log.resource_id }}{% endif %}</td>
+            <td class="text-muted">{{ log.extra }}</td>
+            <td class="text-muted">{{ log.ip_address or '-' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state"><p>No unauthorized access attempts recorded.</p></div>
+    {% endif %}
+  </div>
+
+  <div class="card mb-4">
+    <div class="card-header">
+      <h2>Malware Detections</h2>
+      <a href="{{ url_for('superadmin.audit_logs', action='FILE_SCAN_FAILED') }}" class="btn btn--ghost btn--sm">View all</a>
+    </div>
+    {% if malware_detections %}
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Time</th><th>Actor</th><th>School</th><th>Detail</th></tr></thead>
+        <tbody>
+          {% for log in malware_detections %}
+          <tr>
+            <td class="text-muted" style="white-space:nowrap">{{ log.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+            <td>{{ log.actor.display_name if log.actor else '-' }}</td>
+            <td class="text-muted">{{ log.school.name if log.school else '-' }}</td>
+            <td class="text-muted">{{ log.extra }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state"><p>No malware detections recorded.</p></div>
+    {% endif %}
+  </div>
+
+  <div class="card mb-4">
+    <div class="card-header">
+      <h2>Recent Failed Logins</h2>
+      <a href="{{ url_for('superadmin.audit_logs', action='LOGIN_FAILED') }}" class="btn btn--ghost btn--sm">View all</a>
+    </div>
+    {% if recent_failed_logins %}
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Time</th><th>Actor</th><th>Result</th><th>IP</th></tr></thead>
+        <tbody>
+          {% for log in recent_failed_logins %}
+          <tr>
+            <td class="text-muted" style="white-space:nowrap">{{ log.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+            <td>{{ log.actor.display_name if log.actor else (log.extra or '-') }}</td>
+            <td>
+              {% if log.result == 'blocked' %}<span class="badge badge--red">Blocked</span>
+              {% else %}<span class="badge badge--yellow">Failure</span>{% endif %}
+            </td>
+            <td class="text-muted">{{ log.ip_address or '-' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state"><p>No failed logins recorded.</p></div>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h2>Rate-Limit Violations</h2>
+      <a href="{{ url_for('superadmin.audit_logs', action='RATE_LIMIT_TRIGGERED') }}" class="btn btn--ghost btn--sm">View all</a>
+    </div>
+    {% if rate_limit_hits %}
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Time</th><th>Actor</th><th>Detail</th><th>IP</th></tr></thead>
+        <tbody>
+          {% for log in rate_limit_hits %}
+          <tr>
+            <td class="text-muted" style="white-space:nowrap">{{ log.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+            <td>{{ log.actor.display_name if log.actor else '-' }}</td>
+            <td class="text-muted">{{ log.extra }}</td>
+            <td class="text-muted">{{ log.ip_address or '-' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state"><p>No rate-limit violations recorded.</p></div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

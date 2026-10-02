@@ -1,7 +1,8 @@
 import csv
 import io
+import zipfile
 from datetime import date
-from flask import Blueprint, render_template, redirect, url_for, flash, request, Response
+from flask import Blueprint, render_template, redirect, url_for, flash, request, Response, abort
 from flask_login import login_required, current_user
 from sqlalchemy import or_
 from models import db, Student, Class, User
@@ -10,6 +11,8 @@ from routes import student_import
 from routes.student_import import parse_upload, normalize_gender, parse_date, split_full_name
 from routes.validators import generate_password
 from routes.emails import send_account_credentials_email
+from audit import log_audit_event, diff_fields
+from malware_scan import scan_bytes
 
 students_bp = Blueprint('students', __name__, url_prefix='/students')
 
@@ -72,6 +75,9 @@ def add():
             )
             db.session.add(student)
             db.session.commit()
+            log_audit_event('STUDENT_CREATED', actor=current_user, school_id=sid,
+                             resource_type='student', resource_id=student.id,
+                             extra={'reg_number': reg_number})
             flash(f'{student.full_name} added successfully.', 'success')
             return redirect(url_for('students.index'))
 
@@ -91,13 +97,48 @@ def import_students():
             flash('Please choose a file to import.', 'error')
             return render_template('students/import.html', classes=classes)
 
+        # Type-integrity check -- confirms a .xlsx upload is a real zip
+        # archive before handing it to openpyxl. This is not malware
+        # scanning, just protection against a renamed file claiming to be
+        # something it isn't; the real ClamAV scan happens below regardless
+        # of extension.
+        filename_lower = file.filename.lower()
+        if filename_lower.endswith(('.xlsx', '.xlsm')):
+            is_valid_zip = zipfile.is_zipfile(file.stream)
+            file.stream.seek(0)
+            if not is_valid_zip:
+                log_audit_event('FILE_REJECTED', actor=current_user, school_id=sid, result='blocked',
+                                 extra={'reason': 'not_a_valid_xlsx', 'filename': file.filename})
+                flash('That file does not look like a valid Excel file.', 'error')
+                return render_template('students/import.html', classes=classes)
+
+        file_bytes = file.stream.read()
+        file.stream.seek(0)
+        scan = scan_bytes(file_bytes)
+        if not scan.clean:
+            log_audit_event('FILE_SCAN_FAILED', actor=current_user, school_id=sid, result='blocked',
+                             extra={'filename': file.filename, 'detail': scan.detail})
+            flash('That file failed a malware scan and was rejected.', 'error')
+            return render_template('students/import.html', classes=classes)
+        log_audit_event('FILE_SCAN_PASSED', actor=current_user, school_id=sid,
+                         extra={'filename': file.filename})
+
+        log_audit_event('FILE_UPLOADED', actor=current_user, school_id=sid,
+                         resource_type='student_import', extra={'filename': file.filename})
+        log_audit_event('FILE_IMPORT_STARTED', actor=current_user, school_id=sid,
+                         extra={'filename': file.filename})
+
         try:
             rows = parse_upload(file)
         except student_import.ImportError_ as exc:
+            log_audit_event('FILE_IMPORT_FAILED', actor=current_user, school_id=sid, result='failure',
+                             extra={'filename': file.filename, 'error': str(exc)})
             flash(str(exc), 'error')
             return render_template('students/import.html', classes=classes)
 
         if not rows:
+            log_audit_event('FILE_IMPORT_FAILED', actor=current_user, school_id=sid, result='failure',
+                             extra={'filename': file.filename, 'error': 'no data rows'})
             flash('No data rows found in the file.', 'error')
             return render_template('students/import.html', classes=classes)
 
@@ -160,6 +201,15 @@ def import_students():
         if imported:
             db.session.commit()
 
+        log_audit_event(
+            'FILE_IMPORT_COMPLETED', actor=current_user, school_id=sid,
+            extra={'filename': file.filename, 'rows_imported': imported, 'rows_skipped': skipped, 'rows_failed': len(errors)},
+        )
+        log_audit_event(
+            'STUDENT_DATA_IMPORTED', actor=current_user, school_id=sid, resource_type='student',
+            extra={'rows_imported': imported, 'rows_skipped': skipped, 'rows_failed': len(errors)},
+        )
+
         if imported:
             flash(f'{imported} student{"s" if imported != 1 else ""} imported successfully.', 'success')
         if skipped:
@@ -192,7 +242,15 @@ def import_template():
 @login_required
 @staff_required
 def detail(id):
-    student = Student.query.filter_by(id=id, school_id=school_id()).first_or_404()
+    student = Student.query.get_or_404(id)
+    if student.school_id != school_id():
+        log_audit_event(
+            'UNAUTHORIZED_ACCESS_ATTEMPT', actor=current_user, resource_type='student', resource_id=id,
+            result='blocked', extra={'reason': 'student belongs to another school'},
+        )
+        abort(404)
+    log_audit_event('STUDENT_RECORD_ACCESSED', actor=current_user, school_id=student.school_id,
+                     resource_type='student', resource_id=student.id)
     return render_template('students/detail.html', student=student)
 
 
@@ -204,6 +262,14 @@ def edit(id):
     student = Student.query.filter_by(id=id, school_id=sid).first_or_404()
     classes = Class.query.filter_by(school_id=sid).order_by(Class.name).all()
     if request.method == 'POST':
+        before = {
+            'first_name': student.first_name,
+            'last_name': student.last_name,
+            'gender': student.gender,
+            'class_id': student.class_id,
+            'date_of_birth': student.date_of_birth.isoformat() if student.date_of_birth else None,
+        }
+
         student.first_name = request.form.get('first_name', '').strip()
         student.last_name = request.form.get('last_name', '').strip()
         student.gender = request.form.get('gender', '').strip()
@@ -211,6 +277,18 @@ def edit(id):
         dob_str = request.form.get('date_of_birth', '').strip()
         student.date_of_birth = date.fromisoformat(dob_str) if dob_str else None
         db.session.commit()
+
+        after = {
+            'first_name': student.first_name,
+            'last_name': student.last_name,
+            'gender': student.gender,
+            'class_id': student.class_id,
+            'date_of_birth': student.date_of_birth.isoformat() if student.date_of_birth else None,
+        }
+        log_audit_event(
+            'STUDENT_UPDATED', actor=current_user, school_id=sid, resource_type='student', resource_id=student.id,
+            changes=diff_fields({k: (before[k], after[k]) for k in before}),
+        )
         flash('Student updated.', 'success')
         return redirect(url_for('students.detail', id=id))
     return render_template('students/edit.html', student=student, classes=classes)
@@ -248,6 +326,9 @@ def create_account(id):
             db.session.flush()
             student.user_id = user.id
             db.session.commit()
+            log_audit_event('USER_CREATED', actor=current_user, school_id=school_id(),
+                             resource_type='user', resource_id=user.id,
+                             extra={'role': 'student', 'linked_student_id': student.id})
 
             emailed = send_account_credentials_email(user, password, 'student')
             return render_template(
@@ -262,9 +343,12 @@ def create_account(id):
 @login_required
 @admin_required
 def delete(id):
-    student = Student.query.filter_by(id=id, school_id=school_id()).first_or_404()
+    sid = school_id()
+    student = Student.query.filter_by(id=id, school_id=sid).first_or_404()
     name = student.full_name
     db.session.delete(student)
     db.session.commit()
+    log_audit_event('STUDENT_DELETED', actor=current_user, school_id=sid,
+                     resource_type='student', resource_id=id, extra={'name': name})
     flash(f'{name} has been deleted.', 'success')
     return redirect(url_for('students.index'))

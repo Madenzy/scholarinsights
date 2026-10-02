@@ -26,10 +26,13 @@
 <h2 id="technical-measures">Technical Security Measures</h2>
 <ul>
   <li><strong>HTTPS encryption:</strong> All data transmitted between your browser and our servers is encrypted using TLS.</li>
-  <li><strong>Password hashing:</strong> Passwords are never stored in plain text. We use bcrypt hashing, a strong one-way cryptographic algorithm.</li>
-  <li><strong>Session management:</strong> Sessions are cryptographically signed and expire automatically after inactivity.</li>
+  <li><strong>Password hashing:</strong> Passwords are never stored in plain text. We use Argon2id, the password-hashing algorithm recommended by OWASP.</li>
+  <li><strong>Two-factor authentication:</strong> Staff and admin accounts can enable 2FA, via an authenticator app or emailed one-time codes, for an additional login check.</li>
+  <li><strong>Session management:</strong> Sessions are cryptographically signed, marked HTTP-only and Secure, and expire automatically after inactivity.</li>
+  <li><strong>Login throttling:</strong> Repeated failed login attempts are rate-limited and accounts are temporarily locked after too many failures, to slow down password-guessing attacks.</li>
   <li><strong>Input validation:</strong> All user-submitted data is validated and sanitised to prevent injection attacks.</li>
-  <li><strong>CSRF protection:</strong> All forms are protected against Cross-Site Request Forgery attacks.</li>
+  <li><strong>CSRF protection:</strong> All forms and API requests are protected against Cross-Site Request Forgery attacks.</li>
+  <li><strong>Security headers:</strong> A strict Content Security Policy and other browser security headers help prevent common web attacks like clickjacking and script injection.</li>
 </ul>
 
 <h2 id="access-control">Access Control</h2>

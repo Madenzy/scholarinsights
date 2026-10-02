@@ -22,6 +22,7 @@
     <div class="card-header"><h2>Student Information</h2></div>
     <div class="card-body">
       <form method="POST" action="{{ url_for('students.add') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="form-grid">
           <div class="field">
             <label for="reg_number">Registration Number *</label>

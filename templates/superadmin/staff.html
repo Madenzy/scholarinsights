@@ -1,0 +1,102 @@
+{% extends "superadmin/base.html" %}
+{% from "superadmin/_staff_actions.html" import staff_actions, mfa_status_badge %}
+{% block title %}Staff{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Staff</h1>
+    <p class="sub">School admins and teachers across every school.</p>
+  </div>
+</div>
+
+<div class="content">
+  <form method="GET" class="card" style="padding:18px 22px;margin-bottom:18px">
+    <div class="search-bar">
+      <div class="field">
+        <label for="q">Search</label>
+        <input id="q" name="q" type="text" value="{{ q }}" placeholder="Name, username or email"/>
+      </div>
+      <div class="field">
+        <label for="school_id">School</label>
+        <select id="school_id" name="school_id">
+          <option value="">All schools</option>
+          {% for school in schools %}
+          <option value="{{ school.id }}" {{ 'selected' if school_id == school.id }}>{{ school.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="field">
+        <label for="role">Role</label>
+        <select id="role" name="role">
+          <option value="">All roles</option>
+          <option value="school_admin" {{ 'selected' if role == 'school_admin' }}>Admin</option>
+          <option value="teacher" {{ 'selected' if role == 'teacher' }}>Teacher</option>
+        </select>
+      </div>
+      <button type="submit" class="btn btn--primary" style="align-self:flex-end">Filter</button>
+      {% if q or school_id or role %}
+      <a href="{{ url_for('superadmin.staff_list') }}" class="btn btn--ghost" style="align-self:flex-end">Clear</a>
+      {% endif %}
+    </div>
+  </form>
+
+  <div class="card">
+    {% if staff %}
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>School</th>
+            <th>Role</th>
+            <th>Status</th>
+            <th>2FA</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in staff %}
+          <tr>
+            <td>
+              <strong>{{ u.display_name }}</strong>
+              <div class="text-muted" style="font-size:12px">{{ u.username }} · {{ u.email }}</div>
+            </td>
+            <td>
+              {% if u.school %}
+              <a href="{{ url_for('superadmin.school_detail', id=u.school_id) }}">{{ u.school.name }}</a>
+              {% else %}<span class="text-muted">-</span>{% endif %}
+            </td>
+            <td>
+              {% if u.role == 'school_admin' %}<span class="badge badge--indigo">Admin</span>
+              {% else %}<span class="badge badge--gray">Teacher</span>{% endif %}
+            </td>
+            <td>
+              {% if u.is_active %}<span class="badge badge--green">Active</span>
+              {% else %}<span class="badge badge--red">Disabled</span>{% endif %}
+            </td>
+            <td>{{ mfa_status_badge(u) }}</td>
+            <td>{{ staff_actions(u) }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% if pagination.pages > 1 %}
+    <div class="gap-row" style="padding:16px 22px;align-items:center">
+      {% if pagination.has_prev %}
+      <a class="btn btn--ghost btn--sm" href="{{ url_for('superadmin.staff_list', page=pagination.prev_num, **filter_qs) }}">&larr; Newer</a>
+      {% endif %}
+      <span class="text-muted">Page {{ pagination.page }} of {{ pagination.pages }}</span>
+      {% if pagination.has_next %}
+      <a class="btn btn--ghost btn--sm" href="{{ url_for('superadmin.staff_list', page=pagination.next_num, **filter_qs) }}">Older &rarr;</a>
+      {% endif %}
+    </div>
+    {% endif %}
+    {% else %}
+    <div class="empty-state"><p>No staff match these filters.</p></div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

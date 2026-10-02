@@ -43,6 +43,7 @@
             <td>
               {% if t.id != current_user.id %}
               <form method="POST" action="{{ url_for('users.delete', id=t.id) }}" data-confirm="Delete account for {{ t.display_name }}?">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <button type="submit" class="btn btn--danger btn--sm">Delete</button>
               </form>
               {% endif %}

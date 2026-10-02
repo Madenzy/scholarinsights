@@ -6,6 +6,7 @@ import ForgotPassword from './pages/auth/ForgotPassword'
 import ResetPassword from './pages/auth/ResetPassword'
 import SchoolRegister from './pages/auth/SchoolRegister'
 import VerifyEmail from './pages/auth/VerifyEmail'
+import VerifyMfa from './pages/auth/VerifyMfa'
 import Dashboard from './pages/dashboard/Dashboard'
 import Placeholder from './pages/Placeholder'
 
@@ -19,6 +20,7 @@ export default function App() {
           <Route path="/reset-password/:token" element={<ResetPassword />} />
           <Route path="/register" element={<SchoolRegister />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
+          <Route path="/verify-mfa" element={<VerifyMfa />} />
         </Route>
 
         <Route element={<AppLayout />}>

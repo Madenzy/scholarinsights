@@ -23,6 +23,7 @@
   <div class="alert alert--info">No subjects found. <a href="{{ url_for('subjects.index') }}">Add subjects first</a>.</div>
   {% else %}
   <form method="POST" action="{{ url_for('reports.generate') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div style="display:grid;gap:20px">
       <!-- Student & Term -->
       <div class="card">

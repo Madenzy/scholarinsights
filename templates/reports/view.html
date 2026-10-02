@@ -35,14 +35,17 @@
     <a href="{{ url_for('reports.edit', id=report.id) }}" class="btn btn--ghost">Edit</a>
     {% if report.status == 'draft' %}
     <form method="POST" action="{{ url_for('reports.publish', id=report.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <button type="submit" class="btn btn--success">Publish Report</button>
     </form>
     {% else %}
     <form method="POST" action="{{ url_for('reports.unpublish', id=report.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <button type="submit" class="btn btn--ghost">Unpublish</button>
     </form>
     {% endif %}
     <form method="POST" action="{{ url_for('reports.delete', id=report.id) }}" data-confirm="Delete this report permanently?">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <button type="submit" class="btn btn--danger">Delete</button>
     </form>
   </div>

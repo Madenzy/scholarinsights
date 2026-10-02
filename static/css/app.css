@@ -555,7 +555,7 @@ img, svg { display: block; max-width: 100%; }
 /* Two-column form layout for pages that need it */
 .page-cols {
   display: grid;
-  grid-template-columns: 1fr 360px;
+  grid-template-columns: minmax(0, 1fr) 360px;
   gap: 20px;
   align-items: start;
 }
@@ -691,7 +691,7 @@ img, svg { display: block; max-width: 100%; }
   .report-card__comments { grid-template-columns: 1fr; }
   .report-card__identity { flex-direction: column; }
   .detail-layout { grid-template-columns: 1fr; }
-  .page-cols { grid-template-columns: 1fr; }
+  .page-cols { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 560px) {
   .stats-grid { grid-template-columns: 1fr; }

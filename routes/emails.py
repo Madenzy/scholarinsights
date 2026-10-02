@@ -124,3 +124,25 @@ def send_verification_code_email(email, code):
     except Exception:
         current_app.logger.exception('Failed to send verification code email to %s', email)
         return False
+
+
+def send_mfa_code_email(email, code):
+    """Email a one-time login code for an account using email-based MFA."""
+    subject = 'Your InsightScholar login code'
+    body = (
+        f"Hello,\n\n"
+        f"Your InsightScholar login code is:\n\n"
+        f"    {code}\n\n"
+        f"Enter this code to finish signing in. This code expires in 5 minutes.\n\n"
+        f"If you didn't try to log in, you can safely ignore this email -- "
+        f"your account is still secure.\n\n"
+        f"InsightScholar"
+    )
+
+    try:
+        msg = Message(subject=subject, recipients=[email], body=body)
+        mail.send(msg)
+        return True
+    except Exception:
+        current_app.logger.exception('Failed to send MFA login code email to %s', email)
+        return False

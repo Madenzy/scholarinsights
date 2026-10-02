@@ -109,9 +109,11 @@ document.querySelectorAll('a[href^="#"]').forEach((a) => {
     btn.disabled = true;
 
     try {
+      const csrfMatch = document.cookie.match(/(?:^|; )csrf_token=([^;]*)/);
+      const csrfToken = csrfMatch ? decodeURIComponent(csrfMatch[1]) : "";
       const res = await fetch(API_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken },
         body: JSON.stringify(data),
       });
       const json = await res.json().catch(() => ({}));

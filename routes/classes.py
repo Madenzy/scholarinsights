@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from models import db, Class, User
 from routes.utils import school_id, staff_required, admin_required
+from audit import log_audit_event
 
 classes_bp = Blueprint('classes', __name__, url_prefix='/classes')
 
@@ -30,8 +31,11 @@ def add():
     if not name:
         flash('Class name is required.', 'error')
     else:
-        db.session.add(Class(name=name, grade_level=grade_level or None, teacher_id=teacher_id or None, school_id=sid))
+        class_ = Class(name=name, grade_level=grade_level or None, teacher_id=teacher_id or None, school_id=sid)
+        db.session.add(class_)
         db.session.commit()
+        log_audit_event('CLASS_CREATED', actor=current_user, school_id=sid,
+                         resource_type='class', resource_id=class_.id, extra={'name': name})
         flash(f'Class "{name}" added.', 'success')
 
     return redirect(url_for('classes.index'))
@@ -41,11 +45,15 @@ def add():
 @login_required
 @admin_required
 def delete(id):
-    class_ = Class.query.filter_by(id=id, school_id=school_id()).first_or_404()
+    sid = school_id()
+    class_ = Class.query.filter_by(id=id, school_id=sid).first_or_404()
     if class_.students:
         flash('Cannot delete a class that has students assigned.', 'error')
     else:
+        name = class_.name
         db.session.delete(class_)
         db.session.commit()
+        log_audit_event('CLASS_DELETED', actor=current_user, school_id=sid,
+                         resource_type='class', resource_id=id, extra={'name': name})
         flash('Class deleted.', 'success')
     return redirect(url_for('classes.index'))

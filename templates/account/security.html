@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Account Security | InsightScholar{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Account Security</h1>
+    <p class="sub">Two-factor authentication adds a second check when you sign in.</p>
+  </div>
+</div>
+
+<div class="content">
+  {% if mfa_setup_required %}
+  <div class="alert alert--error mb-4">
+    Your administrator requires two-factor authentication on this account. Set it up below to continue using InsightScholar.
+  </div>
+  {% endif %}
+  <div class="card card--md" id="mfa-card">
+    <div class="card-body">
+      <p id="mfa-status" class="text-muted">Loading…</p>
+
+      <!-- Disabled: choose a method -->
+      <div id="mfa-enroll-choice" hidden>
+        <div class="gap-row">
+          <button type="button" class="btn btn--primary" id="start-totp">Set up an authenticator app</button>
+          <button type="button" class="btn btn--ghost" id="start-email">Use email codes instead</button>
+        </div>
+      </div>
+
+      <!-- TOTP enrollment in progress -->
+      <div id="mfa-totp-setup" hidden style="margin-top:18px">
+        <p>Scan this QR code with your authenticator app (Google Authenticator, Authy, 1Password, etc.), then enter the 6-digit code it shows.</p>
+        <img id="totp-qr" alt="TOTP QR code" width="200" height="200" style="border:1px solid var(--border);border-radius:var(--radius);padding:8px"/>
+        <p class="text-muted" style="font-size:12.5px">Can't scan it? Enter this code manually: <code id="totp-secret"></code></p>
+        <div class="form-grid" style="max-width:260px;margin-top:10px">
+          <div class="field">
+            <label for="totp-confirm-code">6-digit code</label>
+            <input id="totp-confirm-code" type="text" inputMode="numeric" maxlength="6" placeholder="123456"/>
+          </div>
+          <button type="button" class="btn btn--primary" id="confirm-totp">Confirm</button>
+        </div>
+      </div>
+
+      <!-- Backup codes shown once after enrollment -->
+      <div id="mfa-backup-codes" hidden style="margin-top:18px">
+        <div class="alert alert--info">Save these backup codes somewhere safe. Each one can be used once if you lose access to your normal method.</div>
+        <ul id="backup-codes-list" style="font-family:monospace;font-size:14px;line-height:1.8"></ul>
+      </div>
+
+      <!-- Enabled: disable form -->
+      <div id="mfa-disable" hidden style="margin-top:18px">
+        <div class="form-grid" style="max-width:300px">
+          <div class="field">
+            <label for="disable-password">Current password</label>
+            <input id="disable-password" type="password" autocomplete="current-password"/>
+          </div>
+          <button type="button" class="btn btn--danger" id="disable-mfa">Turn off two-factor authentication</button>
+        </div>
+      </div>
+
+      <div id="mfa-error" class="alert alert--error" style="margin-top:14px" hidden></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/account_security.js') }}"></script>
+{% endblock %}

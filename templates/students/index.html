@@ -74,6 +74,7 @@
                 <a href="{{ url_for('students.detail', id=s.id) }}" class="btn btn--ghost btn--sm">View</a>
                 <a href="{{ url_for('students.edit', id=s.id) }}" class="btn btn--ghost btn--sm">Edit</a>
                 <form method="POST" action="{{ url_for('students.delete', id=s.id) }}" data-confirm="Delete {{ s.full_name }}? All their reports will also be deleted.">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                   <button type="submit" class="btn btn--danger btn--sm">Delete</button>
                 </form>
               </div>

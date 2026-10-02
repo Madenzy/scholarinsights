@@ -33,6 +33,7 @@
             <td>
               <form method="POST" action="{{ url_for('subjects.delete', id=s.id) }}"
                     data-confirm="Delete subject '{{ s.name }}'?">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <button type="submit" class="btn btn--danger btn--sm">Delete</button>
               </form>
             </td>
@@ -53,6 +54,7 @@
     <div class="card-header"><h2>Add Subject</h2></div>
     <div class="card-body">
       <form method="POST" action="{{ url_for('subjects.add') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="form-grid">
           <div class="field">
             <label for="name">Subject Name *</label>

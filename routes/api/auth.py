@@ -3,21 +3,34 @@ import re
 import secrets
 import time
 import uuid
+from datetime import datetime, timedelta
 
 from flask import Blueprint, jsonify, request, current_app, session
 from flask_login import login_user, logout_user, login_required, current_user
 from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
-from werkzeug.security import generate_password_hash
 
-from models import db, User, School, GradeBand, DEFAULT_GRADE_BANDS
+from models import db, User, School, GradeBand, DEFAULT_GRADE_BANDS, hash_password
 from routes.api.serializers import serialize_user
-from routes.emails import send_password_reset_email, send_verification_code_email
+from routes.emails import send_password_reset_email, send_verification_code_email, send_mfa_code_email
 from routes.validators import password_error
+from routes.api.mfa import verify_mfa_code
+from extensions import limiter
+from audit import log_audit_event
+from malware_scan import scan_bytes
 
 api_auth_bp = Blueprint('api_auth', __name__, url_prefix='/api/auth')
 
 RESET_SALT = 'password-reset'
 RESET_MAX_AGE = 3600  # 1 hour
+
+# Per-account login throttling. Complements Flask-Limiter's per-IP limits
+# below: this persists across IPs for one targeted username, which IP-based
+# limiting alone can't catch.
+MAX_FAILED_LOGIN_ATTEMPTS = 5
+LOCKOUT_DURATION = timedelta(minutes=15)
+
+PENDING_MFA_KEY = 'pending_mfa_login'
+MFA_CHALLENGE_MAX_AGE = 300  # 5 minutes
 
 PENDING_REGISTRATION_KEY = 'pending_school_registration'
 VERIFICATION_CODE_MAX_AGE = 600  # 10 minutes
@@ -48,20 +61,60 @@ def _delete_logo_file(filename):
             pass
 
 
+def _logo_type_matches(ext, header):
+    """Basic magic-byte check that the file's real bytes match its claimed
+    extension. This is type-spoofing protection only, not malware/virus
+    scanning -- there is no AV engine involved, just a signature check so a
+    renamed .exe can't pass itself off as a .png."""
+    if ext in ('jpg', 'jpeg'):
+        return header.startswith(b'\xff\xd8\xff')
+    if ext == 'png':
+        return header.startswith(b'\x89PNG\r\n\x1a\n')
+    if ext == 'webp':
+        return header[:4] == b'RIFF' and header[8:12] == b'WEBP'
+    if ext == 'svg':
+        # SVG has no binary magic number -- accept plausible XML/SVG text.
+        # Note: SVG can embed <script>; this check doesn't address that
+        # pre-existing risk, it only confirms the upload is actually SVG-like.
+        text_start = header[:200].lstrip().lower()
+        return text_start.startswith(b'<?xml') or text_start.startswith(b'<svg')
+    return False
+
+
 def _save_pending_logo(logo_file):
     """Save an uploaded logo under a temp name. Returns (filename, error)."""
     ext = logo_file.filename.rsplit('.', 1)[-1].lower() if '.' in logo_file.filename else ''
     if ext not in ALLOWED_LOGO_EXTENSIONS:
+        log_audit_event('FILE_REJECTED', actor=current_user if current_user.is_authenticated else None,
+                         result='blocked', extra={'reason': 'extension_not_allowed', 'filename': logo_file.filename})
         return None, 'Logo must be a PNG, JPG, WEBP, or SVG image.'
 
     logo_file.seek(0, os.SEEK_END)
     size = logo_file.tell()
     logo_file.seek(0)
     if size > MAX_LOGO_SIZE:
+        log_audit_event('FILE_REJECTED', result='blocked', extra={'reason': 'too_large', 'size': size})
         return None, 'Logo must be smaller than 2MB.'
+
+    header = logo_file.read(256)
+    logo_file.seek(0)
+    if not _logo_type_matches(ext, header):
+        log_audit_event('FILE_REJECTED', result='blocked',
+                         extra={'reason': 'content_does_not_match_extension', 'claimed_type': ext})
+        return None, 'That file does not look like a valid image. Please upload a different file.'
+
+    data = logo_file.read()
+    logo_file.seek(0)
+    scan = scan_bytes(data)
+    if not scan.clean:
+        log_audit_event('FILE_SCAN_FAILED', result='blocked',
+                         extra={'claimed_type': ext, 'detail': scan.detail})
+        return None, 'That file failed a malware scan and was rejected. Please upload a different file.'
+    log_audit_event('FILE_SCAN_PASSED', extra={'claimed_type': ext})
 
     filename = f'pending_{uuid.uuid4().hex}.{ext}'
     logo_file.save(os.path.join(_logo_upload_dir(), filename))
+    log_audit_event('FILE_UPLOADED', resource_type='school_logo', extra={'type': ext, 'size': size})
     return filename, None
 
 
@@ -69,7 +122,29 @@ def _reset_serializer():
     return URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
 
 
+def _register_failed_login(user):
+    """Increment a user's failed-attempt counter; lock the account once it
+    crosses the threshold. Resets the counter on lock so the next window
+    starts clean after the lockout expires."""
+    user.failed_login_attempts += 1
+    if user.failed_login_attempts >= MAX_FAILED_LOGIN_ATTEMPTS:
+        user.locked_until = datetime.utcnow() + LOCKOUT_DURATION
+        user.failed_login_attempts = 0
+        db.session.commit()
+        log_audit_event('ACCOUNT_LOCKED', actor=user, result='blocked')
+    else:
+        db.session.commit()
+
+
+def _clear_failed_logins(user):
+    if user.failed_login_attempts or user.locked_until:
+        user.failed_login_attempts = 0
+        user.locked_until = None
+        db.session.commit()
+
+
 @api_auth_bp.route('/login', methods=['POST'])
+@limiter.limit('10 per minute; 50 per hour')
 def login():
     data = request.get_json(silent=True) or {}
     username = (data.get('username') or '').strip()
@@ -77,20 +152,102 @@ def login():
     remember = bool(data.get('remember'))
 
     user = User.query.filter_by(username=username).first()
+
+    # Checked before verifying the password: a locked account stays locked
+    # even if the right password is supplied, and this avoids spending an
+    # Argon2id verify on a request that's rejected either way.
+    if user and user.locked_until and user.locked_until > datetime.utcnow():
+        log_audit_event('LOGIN_FAILED', actor=user, result='blocked', extra={'reason': 'account_locked'})
+        return jsonify({'error': 'This account is temporarily locked due to repeated failed login attempts. Try again later.'}), 403
+
     if not user or not user.check_password(password):
+        if user:
+            _register_failed_login(user)
+            log_audit_event('LOGIN_FAILED', actor=user, result='failure')
+        else:
+            log_audit_event('LOGIN_FAILED', result='failure', extra={'attempted_username': username})
         return jsonify({'error': 'Invalid username or password.'}), 401
+
+    _clear_failed_logins(user)
+
     if not user.is_active:
+        log_audit_event('LOGIN_FAILED', actor=user, result='blocked', extra={'reason': 'account_disabled'})
         return jsonify({'error': 'Your account has been disabled. Contact your administrator.'}), 403
     if user.school and not user.school.is_active:
+        log_audit_event('LOGIN_FAILED', actor=user, result='blocked', extra={'reason': 'school_suspended'})
         return jsonify({'error': 'Your school account has been suspended. Contact InsightScholar support.'}), 403
 
+    if user.mfa_enabled:
+        pending = {'user_id': user.id, 'remember': remember, 'issued_at': time.time()}
+        if user.mfa_method == 'email':
+            code = _generate_code()
+            pending['code'] = code
+            send_mfa_code_email(user.email, code)
+        session[PENDING_MFA_KEY] = pending
+        return jsonify({'mfa_required': True, 'method': user.mfa_method})
+
     login_user(user, remember=remember)
+    log_audit_event('LOGIN_SUCCESS', actor=user)
     return jsonify({'user': serialize_user(user)})
+
+
+@api_auth_bp.route('/login/mfa-verify', methods=['POST'])
+@limiter.limit('10 per 5 minutes')
+def login_mfa_verify():
+    pending = session.get(PENDING_MFA_KEY)
+    if not pending:
+        return jsonify({'error': 'Your login session expired. Please log in again.'}), 400
+    if time.time() - pending['issued_at'] > MFA_CHALLENGE_MAX_AGE:
+        session.pop(PENDING_MFA_KEY, None)
+        return jsonify({'error': 'This login session expired. Please log in again.'}), 400
+
+    user = User.query.get(pending['user_id'])
+    if not user or not user.mfa_enabled:
+        session.pop(PENDING_MFA_KEY, None)
+        return jsonify({'error': 'Your login session expired. Please log in again.'}), 400
+
+    if user.locked_until and user.locked_until > datetime.utcnow():
+        session.pop(PENDING_MFA_KEY, None)
+        return jsonify({'error': 'This account is temporarily locked due to repeated failed login attempts. Try again later.'}), 403
+
+    data = request.get_json(silent=True) or {}
+    entered_code = (data.get('code') or '').strip()
+
+    if verify_mfa_code(user, pending, entered_code):
+        _clear_failed_logins(user)
+        session.pop(PENDING_MFA_KEY, None)
+        login_user(user, remember=pending.get('remember', False))
+        log_audit_event('LOGIN_SUCCESS', actor=user, extra={'mfa_method': user.mfa_method})
+        return jsonify({'user': serialize_user(user)})
+
+    _register_failed_login(user)
+    log_audit_event('MFA_FAILURE', actor=user, result='failure')
+    return jsonify({'error': 'Incorrect code. Please try again.'}), 400
+
+
+@api_auth_bp.route('/login/mfa-resend', methods=['POST'])
+@limiter.limit('3 per 5 minutes')
+def login_mfa_resend():
+    pending = session.get(PENDING_MFA_KEY)
+    if not pending:
+        return jsonify({'error': 'Your login session expired. Please log in again.'}), 400
+
+    user = User.query.get(pending['user_id'])
+    if not user or not user.mfa_enabled or user.mfa_method != 'email':
+        return jsonify({'error': 'A new code cannot be sent for this account.'}), 400
+
+    code = _generate_code()
+    pending['code'] = code
+    pending['issued_at'] = time.time()
+    session[PENDING_MFA_KEY] = pending
+    send_mfa_code_email(user.email, code)
+    return jsonify({'message': 'A new code has been sent.'})
 
 
 @api_auth_bp.route('/logout', methods=['POST'])
 @login_required
 def logout():
+    log_audit_event('LOGOUT', actor=current_user)
     logout_user()
     return jsonify({'ok': True})
 
@@ -108,6 +265,7 @@ def has_schools():
 
 
 @api_auth_bp.route('/forgot-password', methods=['POST'])
+@limiter.limit('5 per hour')
 def forgot_password():
     data = request.get_json(silent=True) or {}
     email = (data.get('email') or '').strip()
@@ -116,6 +274,7 @@ def forgot_password():
         token = _reset_serializer().dumps(user.id, salt=RESET_SALT)
         reset_url = f"{request.host_url.rstrip('/')}/reset-password/{token}"
         send_password_reset_email(user, reset_url)
+        log_audit_event('PASSWORD_RESET_REQUESTED', actor=user)
     # Same message whether or not the email exists, to avoid leaking which emails are registered.
     return jsonify({'message': 'If that email is registered, a password reset link has been sent.'})
 
@@ -132,6 +291,7 @@ def check_reset_token(token):
 
 
 @api_auth_bp.route('/reset-password/<token>', methods=['POST'])
+@limiter.limit('10 per hour')
 def reset_password(token):
     try:
         user_id = _reset_serializer().loads(token, salt=RESET_SALT, max_age=RESET_MAX_AGE)
@@ -155,10 +315,12 @@ def reset_password(token):
 
     user.set_password(password)
     db.session.commit()
+    log_audit_event('PASSWORD_RESET_COMPLETED', actor=user)
     return jsonify({'message': 'Your password has been reset. Please sign in.'})
 
 
 @api_auth_bp.route('/school-register', methods=['POST'])
+@limiter.limit('5 per hour')
 def school_register():
     form = request.form
     school_name = (form.get('school_name') or '').strip()
@@ -213,7 +375,7 @@ def school_register():
         'full_name': full_name or username,
         'username': username,
         'email': email,
-        'password_hash': generate_password_hash(password),
+        'password_hash': hash_password(password),
         'code': code,
         'issued_at': time.time(),
     }
@@ -230,6 +392,7 @@ def pending_registration():
 
 
 @api_auth_bp.route('/verify-email/resend', methods=['POST'])
+@limiter.limit('3 per 5 minutes')
 def resend_verification_code():
     pending = session.get(PENDING_REGISTRATION_KEY)
     if not pending:
@@ -244,6 +407,7 @@ def resend_verification_code():
 
 
 @api_auth_bp.route('/verify-email', methods=['POST'])
+@limiter.limit('10 per 5 minutes')
 def verify_email():
     pending = session.get(PENDING_REGISTRATION_KEY)
     if not pending:
@@ -309,4 +473,6 @@ def verify_email():
 
     session.pop(PENDING_REGISTRATION_KEY, None)
     login_user(admin)
+    log_audit_event('SCHOOL_CREATED', actor=admin, school_id=school.id, resource_type='school', resource_id=school.id)
+    log_audit_event('LOGIN_SUCCESS', actor=admin, extra={'via': 'school_registration'})
     return jsonify({'user': serialize_user(admin)})

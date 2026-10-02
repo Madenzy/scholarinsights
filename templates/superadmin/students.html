@@ -1,0 +1,110 @@
+{% extends "superadmin/base.html" %}
+{% block title %}Students{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Students</h1>
+    <p class="sub">Account management only — no grades or reports are shown here.</p>
+  </div>
+</div>
+
+<div class="content">
+  <form method="GET" class="card" style="padding:18px 22px;margin-bottom:18px">
+    <div class="search-bar">
+      <div class="field">
+        <label for="q">Search</label>
+        <input id="q" name="q" type="text" value="{{ q }}" placeholder="Name or reg. number"/>
+      </div>
+      <div class="field">
+        <label for="school_id">School</label>
+        <select id="school_id" name="school_id">
+          <option value="">All schools</option>
+          {% for school in schools %}
+          <option value="{{ school.id }}" {{ 'selected' if school_id == school.id }}>{{ school.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <button type="submit" class="btn btn--primary" style="align-self:flex-end">Filter</button>
+      {% if q or school_id %}
+      <a href="{{ url_for('superadmin.students_list') }}" class="btn btn--ghost" style="align-self:flex-end">Clear</a>
+      {% endif %}
+    </div>
+  </form>
+
+  <div class="card">
+    {% if students %}
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Reg. Number</th>
+            <th>School</th>
+            <th>Class</th>
+            <th>Login Account</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in students %}
+          <tr>
+            <td><strong>{{ s.full_name }}</strong></td>
+            <td class="text-muted">{{ s.reg_number }}</td>
+            <td>
+              {% if s.school %}
+              <a href="{{ url_for('superadmin.school_detail', id=s.school_id) }}">{{ s.school.name }}</a>
+              {% else %}<span class="text-muted">-</span>{% endif %}
+            </td>
+            <td class="text-muted">{{ s.class_.name if s.class_ else '-' }}</td>
+            <td>
+              {% if s.has_account %}
+                {% if s.login_user.is_active %}<span class="badge badge--green">Active</span>
+                {% else %}<span class="badge badge--red">Disabled</span>{% endif %}
+              {% else %}
+                <span class="text-muted">No account</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if s.has_account %}
+              <div class="actions">
+                {% if s.login_user.is_active %}
+                <form method="POST" action="{{ url_for('superadmin.disable_user', id=s.login_user.id) }}"
+                      data-confirm="Disable the login account for {{ s.full_name }}?">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button type="submit" class="btn btn--danger btn--sm">Disable Login</button>
+                </form>
+                {% else %}
+                <form method="POST" action="{{ url_for('superadmin.enable_user', id=s.login_user.id) }}">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button type="submit" class="btn btn--success btn--sm">Enable Login</button>
+                </form>
+                {% endif %}
+              </div>
+              {% else %}
+              <span class="text-muted">-</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% if pagination.pages > 1 %}
+    <div class="gap-row" style="padding:16px 22px;align-items:center">
+      {% if pagination.has_prev %}
+      <a class="btn btn--ghost btn--sm" href="{{ url_for('superadmin.students_list', page=pagination.prev_num, **filter_qs) }}">&larr; Newer</a>
+      {% endif %}
+      <span class="text-muted">Page {{ pagination.page }} of {{ pagination.pages }}</span>
+      {% if pagination.has_next %}
+      <a class="btn btn--ghost btn--sm" href="{{ url_for('superadmin.students_list', page=pagination.next_num, **filter_qs) }}">Older &rarr;</a>
+      {% endif %}
+    </div>
+    {% endif %}
+    {% else %}
+    <div class="empty-state"><p>No students match these filters.</p></div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

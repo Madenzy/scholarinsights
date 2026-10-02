@@ -5,11 +5,12 @@ import qrcode.image.svg
 from io import BytesIO
 from xhtml2pdf import pisa
 
-from flask import Blueprint, render_template, redirect, url_for, flash, request, send_file, current_app
+from flask import Blueprint, render_template, redirect, url_for, flash, request, send_file, current_app, abort
 from flask_login import login_required, current_user
 from models import db, Report, Student, School, AcademicTerm, Subject, Grade, calculate_grade
 from routes.utils import school_id, staff_required, admin_required
 from routes.emails import send_report_published_email
+from audit import log_audit_event
 
 reports_bp = Blueprint('reports', __name__, url_prefix='/reports')
 
@@ -168,6 +169,9 @@ def generate():
                     pass
 
         db.session.commit()
+        log_audit_event('REPORT_CREATED', actor=current_user, school_id=sid,
+                         resource_type='report', resource_id=report.id,
+                         extra={'student_id': student_id, 'term_id': term_id})
         flash('Report generated successfully.', 'success')
         return redirect(url_for('reports.view', id=report.id))
 
@@ -178,7 +182,13 @@ def generate():
 @login_required
 @staff_required
 def view(id):
-    report = Report.query.filter_by(id=id, school_id=school_id()).first_or_404()
+    report = Report.query.get_or_404(id)
+    if report.school_id != school_id():
+        log_audit_event(
+            'UNAUTHORIZED_ACCESS_ATTEMPT', actor=current_user, resource_type='report', resource_id=id,
+            result='blocked', extra={'reason': 'report belongs to another school'},
+        )
+        abort(404)
     stats = _report_class_stats(report)
     qr_svg = _report_qr_svg(report)
     return render_template('reports/view.html', report=report, qr_svg=qr_svg, **stats)
@@ -196,6 +206,8 @@ def download(id):
     pdf_buf = _render_pdf(html)
     safe_name = report.student.full_name.replace(' ', '_')
     safe_term = report.term.name.replace(' ', '_')
+    log_audit_event('FILE_DOWNLOAD', actor=current_user, school_id=report.school_id,
+                     resource_type='report', resource_id=report.id)
     return send_file(pdf_buf, mimetype='application/pdf', as_attachment=True, download_name=f'{safe_name}_{safe_term}_report.pdf')
 
 
@@ -241,6 +253,8 @@ def bulk_download():
         })
     html = render_template('reports/pdf_bulk.html', cards=cards)
     pdf_buf = _render_pdf(html)
+    log_audit_event('FILE_DOWNLOAD', actor=current_user, school_id=school_id(),
+                     resource_type='report', extra={'bulk': True, 'count': len(reports)})
     return send_file(pdf_buf, mimetype='application/pdf', as_attachment=True, download_name='report_cards.pdf')
 
 
@@ -279,6 +293,9 @@ def edit(id):
                 db.session.delete(existing)
 
         db.session.commit()
+        log_audit_event('REPORT_UPDATED', actor=current_user, school_id=sid,
+                         resource_type='report', resource_id=id,
+                         extra={'subjects_graded': len(grade_map)})
         flash('Report updated.', 'success')
         return redirect(url_for('reports.view', id=id))
 
@@ -292,6 +309,8 @@ def publish(id):
     report = Report.query.filter_by(id=id, school_id=school_id()).first_or_404()
     report.status = 'published'
     db.session.commit()
+    log_audit_event('REPORT_PUBLISHED', actor=current_user, school_id=report.school_id,
+                     resource_type='report', resource_id=id)
 
     sent, total = send_report_published_email(report)
     if not total:
@@ -311,6 +330,8 @@ def unpublish(id):
     report = Report.query.filter_by(id=id, school_id=school_id()).first_or_404()
     report.status = 'draft'
     db.session.commit()
+    log_audit_event('REPORT_UNPUBLISHED', actor=current_user, school_id=report.school_id,
+                     resource_type='report', resource_id=id)
     flash('Report moved back to draft.', 'success')
     return redirect(url_for('reports.view', id=id))
 
@@ -319,8 +340,11 @@ def unpublish(id):
 @login_required
 @admin_required
 def delete(id):
-    report = Report.query.filter_by(id=id, school_id=school_id()).first_or_404()
+    sid = school_id()
+    report = Report.query.filter_by(id=id, school_id=sid).first_or_404()
     db.session.delete(report)
     db.session.commit()
+    log_audit_event('REPORT_DELETED', actor=current_user, school_id=sid,
+                     resource_type='report', resource_id=id)
     flash('Report deleted.', 'success')
     return redirect(url_for('reports.index'))

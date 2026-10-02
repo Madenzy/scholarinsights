@@ -1,0 +1,47 @@
+{% macro staff_actions(u) %}
+<div class="actions">
+  <a href="{{ url_for('superadmin.reset_password', id=u.id) }}" class="btn btn--ghost btn--sm">
+    Reset Password
+  </a>
+
+  {% if u.is_active %}
+  <form method="POST" action="{{ url_for('superadmin.disable_user', id=u.id) }}"
+        data-confirm="Disable {{ u.display_name }}?">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button type="submit" class="btn btn--danger btn--sm">Disable</button>
+  </form>
+  {% else %}
+  <form method="POST" action="{{ url_for('superadmin.enable_user', id=u.id) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button type="submit" class="btn btn--success btn--sm">Enable</button>
+  </form>
+  {% endif %}
+
+  {% if u.role in ('school_admin', 'teacher') %}
+  <form method="POST" action="{{ url_for('superadmin.change_role', id=u.id) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="role" value="{{ 'teacher' if u.role == 'school_admin' else 'school_admin' }}"/>
+    <button type="submit" class="btn btn--ghost btn--sm">
+      Make {{ 'Teacher' if u.role == 'school_admin' else 'Admin' }}
+    </button>
+  </form>
+
+  <form method="POST" action="{{ url_for('superadmin.toggle_require_mfa', id=u.id) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button type="submit" class="btn btn--ghost btn--sm">
+      {{ 'Unrequire MFA' if u.mfa_required else 'Require MFA' }}
+    </button>
+  </form>
+  {% endif %}
+</div>
+{% endmacro %}
+
+{% macro mfa_status_badge(u) %}
+  {% if u.mfa_enabled %}
+    <span class="badge badge--green">{{ 'Authenticator' if u.mfa_method == 'totp' else 'Email' }}</span>
+  {% elif u.mfa_required %}
+    <span class="badge badge--yellow">Required, not set up</span>
+  {% else %}
+    <span class="badge badge--gray">Off</span>
+  {% endif %}
+{% endmacro %}

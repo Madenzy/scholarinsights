@@ -20,6 +20,7 @@
     <div class="card-header"><h2>{{ student.full_name }}</h2></div>
     <div class="card-body">
       <form method="POST" action="{{ url_for('students.edit', id=student.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="form-grid">
           <div class="form-row">
             <div class="field">

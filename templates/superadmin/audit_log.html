@@ -1,0 +1,144 @@
+{% extends "superadmin/base.html" %}
+{% block title %}Audit Logs{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Audit Logs</h1>
+    <p class="sub">Append-only record of security- and data-relevant actions across every account.</p>
+  </div>
+</div>
+
+<div class="content">
+  <form method="GET" class="card" style="padding:18px 22px;margin-bottom:18px">
+    <div class="search-bar" style="flex-wrap:wrap">
+      <div class="field">
+        <label for="school_id">School</label>
+        <select id="school_id" name="school_id">
+          <option value="">All schools</option>
+          {% for school in schools %}
+          <option value="{{ school.id }}" {{ 'selected' if filters.school_id == school.id }}>{{ school.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="field">
+        <label for="action">Action</label>
+        <select id="action" name="action">
+          <option value="">All actions</option>
+          {% for a in distinct_actions %}
+          <option value="{{ a }}" {{ 'selected' if filters.action == a }}>{{ a }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="field">
+        <label for="role">Role</label>
+        <select id="role" name="role">
+          <option value="">All roles</option>
+          {% for r in ('super_admin', 'school_admin', 'teacher', 'student', 'parent') %}
+          <option value="{{ r }}" {{ 'selected' if filters.role == r }}>{{ r.replace('_', ' ')|title }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="field">
+        <label for="result">Result</label>
+        <select id="result" name="result">
+          <option value="">Any</option>
+          {% for r in ('success', 'failure', 'blocked') %}
+          <option value="{{ r }}" {{ 'selected' if filters.result == r }}>{{ r|title }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="field">
+        <label for="resource_type">Resource</label>
+        <input id="resource_type" name="resource_type" type="text" value="{{ filters.resource_type }}" placeholder="e.g. student"/>
+      </div>
+      <div class="field">
+        <label for="actor_user_id">Actor user ID</label>
+        <input id="actor_user_id" name="actor_user_id" type="number" value="{{ filters.actor_user_id or '' }}"/>
+      </div>
+      <div class="field">
+        <label for="date_from">From</label>
+        <input id="date_from" name="date_from" type="date" value="{{ filters.date_from }}"/>
+      </div>
+      <div class="field">
+        <label for="date_to">To</label>
+        <input id="date_to" name="date_to" type="date" value="{{ filters.date_to }}"/>
+      </div>
+      <button type="submit" class="btn btn--primary" style="align-self:flex-end">Filter</button>
+      <a href="{{ url_for('superadmin.audit_logs') }}" class="btn btn--ghost" style="align-self:flex-end">Clear</a>
+    </div>
+  </form>
+
+  <div class="card">
+    {% if logs %}
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Time (UTC)</th>
+            <th>Actor</th>
+            <th>Role</th>
+            <th>School</th>
+            <th>Action</th>
+            <th>Resource</th>
+            <th>Result</th>
+            <th>IP</th>
+            <th>Detail</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for log in logs %}
+          <tr>
+            <td class="text-muted" style="white-space:nowrap">{{ log.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+            <td>{{ log.actor.display_name if log.actor else '-' }}</td>
+            <td class="text-muted">{{ log.actor_role or '-' }}</td>
+            <td class="text-muted">{{ log.school.name if log.school else '-' }}</td>
+            <td><strong>{{ log.action }}</strong></td>
+            <td class="text-muted">{{ log.resource_type ~ (' #' ~ log.resource_id|string if log.resource_id else '') if log.resource_type else '-' }}</td>
+            <td>
+              {% if log.result == 'success' %}
+              <span class="badge badge--green">Success</span>
+              {% elif log.result == 'blocked' %}
+              <span class="badge badge--red">Blocked</span>
+              {% else %}
+              <span class="badge badge--yellow">Failure</span>
+              {% endif %}
+            </td>
+            <td class="text-muted">{{ log.ip_address or '-' }}</td>
+            <td>
+              {% if log.changes or log.extra %}
+              <details>
+                <summary class="text-muted" style="cursor:pointer">View</summary>
+                {% if log.changes %}<pre style="font-size:11px;white-space:pre-wrap;margin:6px 0">{{ log.changes }}</pre>{% endif %}
+                {% if log.extra %}<pre style="font-size:11px;white-space:pre-wrap;margin:6px 0">{{ log.extra }}</pre>{% endif %}
+              </details>
+              {% else %}
+              <span class="text-muted">-</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% if pagination.pages > 1 %}
+    <div class="gap-row" style="padding:16px 22px;align-items:center">
+      {% if pagination.has_prev %}
+      <a class="btn btn--ghost btn--sm" href="{{ url_for('superadmin.audit_logs', page=pagination.prev_num, **filter_qs) }}">&larr; Newer</a>
+      {% endif %}
+      <span class="text-muted">Page {{ pagination.page }} of {{ pagination.pages }}</span>
+      {% if pagination.has_next %}
+      <a class="btn btn--ghost btn--sm" href="{{ url_for('superadmin.audit_logs', page=pagination.next_num, **filter_qs) }}">Older &rarr;</a>
+      {% endif %}
+    </div>
+    {% endif %}
+    {% else %}
+    <div class="empty-state">
+      <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      <p>No audit log entries match these filters.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

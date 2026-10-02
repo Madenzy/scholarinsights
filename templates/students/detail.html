@@ -64,6 +64,7 @@
             <p class="text-muted mb-4">Username: <strong>{{ student.login_user.username }}</strong></p>
             <form method="POST" action="{{ url_for('users.delete', id=student.login_user.id) }}"
                   data-confirm="Revoke login access for {{ student.full_name }}?">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
               <button type="submit" class="btn btn--danger btn--sm">Revoke Access</button>
             </form>
           {% else %}

@@ -5,7 +5,7 @@
 <div class="page-header">
   <div>
     <div class="breadcrumb">
-      <a href="{{ url_for('superadmin.index') }}">Schools</a>
+      <a href="{{ url_for('superadmin.schools_list') }}">Schools</a>
       <span>/</span>
       <span>{{ school.name }}</span>
     </div>
@@ -20,16 +20,19 @@
       <span class="badge badge--green badge--lg">Active</span>
       <form method="POST" action="{{ url_for('superadmin.disable_school', id=school.id) }}"
             data-confirm="Suspend {{ school.name }}? All users will be locked out immediately.">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <button type="submit" class="btn btn--danger">Suspend School</button>
       </form>
     {% else %}
       <span class="badge badge--red badge--lg">Suspended</span>
       <form method="POST" action="{{ url_for('superadmin.enable_school', id=school.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <button type="submit" class="btn btn--success">Reactivate School</button>
       </form>
     {% endif %}
     <form method="POST" action="{{ url_for('superadmin.delete_school', id=school.id) }}"
           data-confirm="PERMANENTLY delete {{ school.name }} and ALL its data? This cannot be undone.">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <button type="submit" class="btn btn--danger">Delete School</button>
     </form>
   </div>
@@ -68,6 +71,7 @@
   </div>
 
   <!-- Users table -->
+  {% from "superadmin/_staff_actions.html" import staff_actions, mfa_status_badge %}
   <div class="card">
     <div class="card-header"><h2>Users</h2></div>
     {% if users %}
@@ -80,6 +84,7 @@
             <th>Email</th>
             <th>Role</th>
             <th>Status</th>
+            <th>2FA</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -109,36 +114,9 @@
               {% endif %}
             </td>
             <td>
-              <div class="actions">
-                <!-- Reset password -->
-                <a href="{{ url_for('superadmin.reset_password', id=u.id) }}" class="btn btn--ghost btn--sm">
-                  Reset Password
-                </a>
-
-                <!-- Disable / Enable -->
-                {% if u.is_active %}
-                <form method="POST" action="{{ url_for('superadmin.disable_user', id=u.id) }}"
-                      data-confirm="Disable {{ u.display_name }}?">
-                  <button type="submit" class="btn btn--danger btn--sm">Disable</button>
-                </form>
-                {% else %}
-                <form method="POST" action="{{ url_for('superadmin.enable_user', id=u.id) }}">
-                  <button type="submit" class="btn btn--success btn--sm">Enable</button>
-                </form>
-                {% endif %}
-
-                <!-- Change role (staff only) -->
-                {% if u.role in ('school_admin', 'teacher') %}
-                <form method="POST" action="{{ url_for('superadmin.change_role', id=u.id) }}">
-                  <input type="hidden" name="role"
-                         value="{{ 'teacher' if u.role == 'school_admin' else 'school_admin' }}"/>
-                  <button type="submit" class="btn btn--ghost btn--sm">
-                    Make {{ 'Teacher' if u.role == 'school_admin' else 'Admin' }}
-                  </button>
-                </form>
-                {% endif %}
-              </div>
+              {% if u.role in ('school_admin', 'teacher') %}{{ mfa_status_badge(u) }}{% else %}<span class="text-muted">-</span>{% endif %}
             </td>
+            <td>{{ staff_actions(u) }}</td>
           </tr>
           {% endfor %}
         </tbody>
@@ -150,7 +128,7 @@
   </div>
 
   <div class="mt-4">
-    <a href="{{ url_for('superadmin.index') }}" class="btn btn--ghost">← Back to Schools</a>
+    <a href="{{ url_for('superadmin.schools_list') }}" class="btn btn--ghost">← Back to Schools</a>
   </div>
 </div>
 {% endblock %}

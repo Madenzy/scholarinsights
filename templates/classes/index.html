@@ -35,6 +35,7 @@
             <td>
               <form method="POST" action="{{ url_for('classes.delete', id=c.id) }}"
                     data-confirm="Delete class '{{ c.name }}'?">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <button type="submit" class="btn btn--danger btn--sm">Delete</button>
               </form>
             </td>
@@ -55,6 +56,7 @@
     <div class="card-header"><h2>Add Class</h2></div>
     <div class="card-body">
       <form method="POST" action="{{ url_for('classes.add') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="form-grid">
           <div class="field">
             <label for="name">Class Name *</label>

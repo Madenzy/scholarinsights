@@ -18,6 +18,7 @@
 
 <div class="content">
   <form method="POST" action="{{ url_for('reports.edit', id=report.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div style="display:grid;gap:20px">
       <!-- Grades -->
       <div class="card">
