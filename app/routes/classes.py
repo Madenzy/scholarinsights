@@ -1,8 +1,8 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
-from models import db, Class, User
-from routes.utils import school_id, staff_required, admin_required
-from audit import log_audit_event
+from app.models import db, Class, User
+from app.routes.utils import school_id, staff_required, admin_required
+from app.audit import log_audit_event
 
 classes_bp = Blueprint('classes', __name__, url_prefix='/classes')
 

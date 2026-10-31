@@ -1,10 +1,10 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import logout_user, login_required, current_user
-from models import db, User
-from routes.utils import admin_required
-from routes.validators import generate_password
-from routes.emails import send_account_credentials_email
-from audit import log_audit_event
+from app.models import db, User
+from app.routes.utils import admin_required
+from app.routes.validators import generate_password
+from app.routes.emails import send_account_credentials_email
+from app.audit import log_audit_event
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
 

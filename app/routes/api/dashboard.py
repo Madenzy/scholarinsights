@@ -1,8 +1,8 @@
 from flask import Blueprint, jsonify
 from flask_login import login_required
 
-from models import Student, Report, Class, Subject
-from routes.utils import school_id, staff_required
+from app.models import Student, Report, Class, Subject
+from app.routes.utils import school_id, staff_required
 
 api_dashboard_bp = Blueprint('api_dashboard', __name__, url_prefix='/api/dashboard')
 

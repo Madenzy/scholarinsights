@@ -8,9 +8,9 @@ import qrcode
 from flask import Blueprint, jsonify, request, session
 from flask_login import login_required, current_user
 
-from models import db, hash_password, verify_hash
-from extensions import limiter
-from audit import log_audit_event
+from app.models import db, hash_password, verify_hash
+from app.extensions import limiter
+from app.audit import log_audit_event
 
 api_mfa_bp = Blueprint('api_mfa', __name__, url_prefix='/api/auth/mfa')
 

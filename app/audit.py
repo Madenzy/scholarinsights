@@ -13,7 +13,7 @@ import uuid
 
 from flask import g, request, current_app
 
-from models import db, AuditLog
+from app.models import db, AuditLog
 
 SENSITIVE_FIELD_PATTERNS = ('password', 'secret', 'token', 'code')
 

@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, abort, redirect, url_for
 from flask_login import login_required, current_user
-from models import Report
+from app.models import Report
 
 portal_bp = Blueprint('portal', __name__, url_prefix='/portal')
 
