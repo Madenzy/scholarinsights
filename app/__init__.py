@@ -7,13 +7,14 @@ from flask_migrate import Migrate
 from flask_wtf import CSRFProtect
 from flask_wtf.csrf import generate_csrf
 from werkzeug.middleware.proxy_fix import ProxyFix
-from config import Config
-from models import db, login_manager, mail, User
-from extensions import limiter
-from security_headers import add_security_headers
-from audit import init_request_id, log_audit_event
+from app.config import Config
+from app.models import db, login_manager, mail, User
+from app.extensions import limiter
+from app.security.headers import add_security_headers
+from app.audit import init_request_id, log_audit_event
 
-FRONTEND_DIST = os.path.join(os.path.dirname(__file__), 'frontend', 'dist')
+# frontend/ lives at the repo root, one level above this package.
+FRONTEND_DIST = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'frontend', 'dist')
 
 
 def create_app():
@@ -72,23 +73,23 @@ def create_app():
         )
         return add_security_headers(response)
 
-    from routes.auth import auth_bp
-    from routes.account import account_bp
-    from routes.dashboard import dashboard_bp
-    from routes.students import students_bp
-    from routes.reports import reports_bp
-    from routes.classes import classes_bp
-    from routes.subjects import subjects_bp
-    from routes.terms import terms_bp
-    from routes.grading import grading_bp
-    from routes.portal import portal_bp
-    from routes.users import users_bp
-    from routes.superadmin import superadmin_bp
-    from routes.legal import legal_bp
-    from routes.landing import landing_bp
-    from routes.api.auth import api_auth_bp
-    from routes.api.mfa import api_mfa_bp
-    from routes.api.dashboard import api_dashboard_bp
+    from app.routes.auth import auth_bp
+    from app.routes.account import account_bp
+    from app.routes.dashboard import dashboard_bp
+    from app.routes.students import students_bp
+    from app.routes.reports import reports_bp
+    from app.routes.classes import classes_bp
+    from app.routes.subjects import subjects_bp
+    from app.routes.terms import terms_bp
+    from app.routes.grading import grading_bp
+    from app.routes.portal import portal_bp
+    from app.routes.users import users_bp
+    from app.routes.superadmin import superadmin_bp
+    from app.routes.legal import legal_bp
+    from app.routes.landing import landing_bp
+    from app.routes.api.auth import api_auth_bp
+    from app.routes.api.mfa import api_mfa_bp
+    from app.routes.api.dashboard import api_dashboard_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(account_bp)
@@ -160,8 +161,3 @@ def create_app():
 
     return app
 
-
-if __name__ == '__main__':
-    app = create_app()
-    debug = os.environ.get('FLASK_DEBUG', 'false').lower() in ('1', 'true', 'yes')
-    app.run(debug=debug)

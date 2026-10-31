@@ -9,14 +9,14 @@ from flask import Blueprint, jsonify, request, current_app, session
 from flask_login import login_user, logout_user, login_required, current_user
 from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
 
-from models import db, User, School, GradeBand, DEFAULT_GRADE_BANDS, hash_password
-from routes.api.serializers import serialize_user
-from routes.emails import send_password_reset_email, send_verification_code_email, send_mfa_code_email
-from routes.validators import password_error
-from routes.api.mfa import verify_mfa_code
-from extensions import limiter
-from audit import log_audit_event
-from malware_scan import scan_bytes
+from app.models import db, User, School, GradeBand, DEFAULT_GRADE_BANDS, hash_password
+from app.routes.api.serializers import serialize_user
+from app.routes.emails import send_password_reset_email, send_verification_code_email, send_mfa_code_email
+from app.routes.validators import password_error
+from app.routes.api.mfa import verify_mfa_code
+from app.extensions import limiter
+from app.audit import log_audit_event
+from app.security.malware_scan import scan_bytes
 
 api_auth_bp = Blueprint('api_auth', __name__, url_prefix='/api/auth')
 

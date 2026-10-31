@@ -1,8 +1,8 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
-from models import db, Subject
-from routes.utils import school_id, staff_required, admin_required
-from audit import log_audit_event
+from app.models import db, Subject
+from app.routes.utils import school_id, staff_required, admin_required
+from app.audit import log_audit_event
 
 subjects_bp = Blueprint('subjects', __name__, url_prefix='/subjects')
 

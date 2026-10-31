@@ -1,18 +1,27 @@
-__pycache__
+# Secrets
 .env
-instance/*.db
-claude/
-static/uploads/
-# Playwright CLI output (may contain credentials)
-playwright-cli/
 
-SCH/
+# Python
 __pycache__/
 *.pyc
-.env
-instance/
-frontend/node_modules/
-frontend/dist/
+.venv/
+venv/
 
+# Local database and Flask instance folder
+instance/
+*.db
+
+# User uploads (school logos etc.)
+app/static/uploads/
+
+# Frontend
+frontend/node_modules/
+# frontend/dist/ is committed on purpose so the server can serve the
+# React build without running npm. Rebuild with `npm run build`.
+
+# Tool and agent output
 .agents/
 .claude/
+claude/
+SCH/
+playwright-cli/

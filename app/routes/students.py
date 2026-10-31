@@ -5,14 +5,14 @@ from datetime import date
 from flask import Blueprint, render_template, redirect, url_for, flash, request, Response, abort
 from flask_login import login_required, current_user
 from sqlalchemy import or_
-from models import db, Student, Class, User
-from routes.utils import school_id, staff_required, admin_required
-from routes import student_import
-from routes.student_import import parse_upload, normalize_gender, parse_date, split_full_name
-from routes.validators import generate_password
-from routes.emails import send_account_credentials_email
-from audit import log_audit_event, diff_fields
-from malware_scan import scan_bytes
+from app.models import db, Student, Class, User
+from app.routes.utils import school_id, staff_required, admin_required
+from app.routes import student_import
+from app.routes.student_import import parse_upload, normalize_gender, parse_date, split_full_name
+from app.routes.validators import generate_password
+from app.routes.emails import send_account_credentials_email
+from app.audit import log_audit_event, diff_fields
+from app.security.malware_scan import scan_bytes
 
 students_bp = Blueprint('students', __name__, url_prefix='/students')
 

@@ -5,10 +5,10 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request,
 from flask_login import login_required, current_user
 from sqlalchemy import or_, func, desc
 
-from models import db, School, User, Student, Class, Subject, AcademicTerm, Report, Grade, AuditLog
-from routes.utils import super_admin_required
-from routes.validators import password_error
-from audit import log_audit_event
+from app.models import db, School, User, Student, Class, Subject, AcademicTerm, Report, Grade, AuditLog
+from app.routes.utils import super_admin_required
+from app.routes.validators import password_error
+from app.audit import log_audit_event
 
 superadmin_bp = Blueprint('superadmin', __name__, url_prefix='/superadmin')
 

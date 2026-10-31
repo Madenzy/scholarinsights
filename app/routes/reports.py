@@ -7,10 +7,10 @@ from xhtml2pdf import pisa
 
 from flask import Blueprint, render_template, redirect, url_for, flash, request, send_file, current_app, abort
 from flask_login import login_required, current_user
-from models import db, Report, Student, School, AcademicTerm, Subject, Grade, calculate_grade
-from routes.utils import school_id, staff_required, admin_required
-from routes.emails import send_report_published_email
-from audit import log_audit_event
+from app.models import db, Report, Student, School, AcademicTerm, Subject, Grade, calculate_grade
+from app.routes.utils import school_id, staff_required, admin_required
+from app.routes.emails import send_report_published_email
+from app.audit import log_audit_event
 
 reports_bp = Blueprint('reports', __name__, url_prefix='/reports')
 

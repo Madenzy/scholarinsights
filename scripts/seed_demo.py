@@ -7,13 +7,18 @@ Safe to re-run: if the demo school already exists, it (and everything
 under it) is deleted first and recreated fresh.
 
 Usage:
-    python seed_demo.py
+    python scripts/seed_demo.py   (run from the project root)
 """
+import os
 import random
+import sys
 from datetime import date
 
+# Let this script import the app package when run from scripts/.
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from app import create_app
-from models import (
+from app.models import (
     db, School, User, Class, Subject, AcademicTerm, Student, Report, Grade,
     calculate_grade,
 )

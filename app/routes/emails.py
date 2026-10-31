@@ -1,7 +1,7 @@
 from flask import current_app, url_for
 from flask_mail import Message
 
-from models import mail
+from app.models import mail
 
 
 def _is_real_email(email):
